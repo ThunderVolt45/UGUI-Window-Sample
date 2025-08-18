@@ -214,7 +214,7 @@ MonoBehaviour:
   defaultWindowPath: Windows/
   baseCanvas: {fileID: 5116989854169686686}
   baseCanvasScaler: {fileID: 4188884711273754665}
-  defaultWindowOnEscape: {fileID: 2208941574171325286, guid: ffc3386cbb1f5cc4caba0ab0109961b6, type: 3}
+  defaultWindowOnEscape: {fileID: 8499739566993383437, guid: 5982d1f7b47cb984a8b849da55389920, type: 3}
   transformMinimizedObjectPool: {fileID: 8922654775922644939}
   transformDisabledObjectPool: {fileID: 505078789579773990}
 --- !u!114 &1383225134348904252
@@ -244,6 +244,6 @@ MonoBehaviour:
   m_ActionEvents: []
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
-  m_DefaultActionMap: 272f6d14-89ba-496f-b7ff-215263d3219f
+  m_DefaultActionMap: UI
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}

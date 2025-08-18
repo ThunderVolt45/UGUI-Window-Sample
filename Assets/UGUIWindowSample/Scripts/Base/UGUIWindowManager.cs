@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -144,15 +145,15 @@ namespace UGUIWindow
         /// </summary>
         /// <param name="windowName">윈도우의 이름</param>
         /// <param name="postInstantiationAction">윈도우 GameObject가 생성된 후 실행할 추가 작업</param>
-        private UGUIWindow GetOrCreateWindow<T>(string windowName, Action<GameObject> postInstantiationAction = null)
+        private UGUIWindow GetOrCreateWindow(Type windowType, string windowName, Action<GameObject> postInstantiationAction = null)
         {
             // 타입 검사
-            if (!typeof(UGUIWindow).IsAssignableFrom(typeof(T)))
+            if (!typeof(UGUIWindow).IsAssignableFrom(windowType))
             {
-                throw new ArgumentException($"Passing {typeof(T)} as a parameter is not allowed");
+                throw new ArgumentException($"Passing {windowType.Name} as a parameter is not allowed");
             }
 
-            string key = typeof(T).Name;
+            string key = windowType.Name;
 
             // 윈도우 풀 확인
             if (windowPool.TryGetValue(key, out var pooledWindow))
@@ -200,17 +201,39 @@ namespace UGUIWindow
         }
 
         /// <summary>
-        /// 기본 윈도우를 생성합니다.
+        /// 윈도우를 생성하는 함수입니다.
         /// </summary>
-        public static UGUIWindow CreateWindow<T>(string windowName = null)
+        /// <typeparam name="T">생성할 윈도우</typeparam>
+        /// <param name="windowName">생성할 윈도우의 이름</param>
+        /// <returns>UGUIWindow</returns>
+        public static UGUIWindow CreateWindow<T>(string windowName = null) where T : UGUIWindow
         {
-            return Instance.GetOrCreateWindow<T>(windowName, null);
+            Type windowType = typeof(T);
+            return CreateWindow(windowType, windowName);
+        }
+
+        /// <summary>
+        /// 기본 윈도우를 생성하는 Non-Generic 함수입니다.
+        /// </summary>
+        /// <param name="windowType">생성할 윈도우의 Type</param>
+        /// <param name="windowName">생성할 윈도우의 이름</param>
+        /// <returns>UGUIWindow</returns>
+        public static UGUIWindow CreateWindow(Type windowType, string windowName = null)
+        {
+            return Instance.GetOrCreateWindow(windowType, windowName, null);
         }
 
         /// <summary>
         /// 위치, 크기 등 추가 옵션을 지정하여 윈도우를 생성합니다.
         /// </summary>
-        public static UGUIWindow CreateWindowEx<T>(string windowName, int x, int y, int width, int height)
+        /// <typeparam name="T">생성할 윈도우의 Type</typeparam>
+        /// <param name="windowName">생성할 윈도우의 이름</param>
+        /// <param name="x">생성할 윈도우의 x 좌표 값</param>
+        /// <param name="y">생성할 윈도우의 y 좌표 값</param>
+        /// <param name="width">생성할 윈도우의 너비 값</param>
+        /// <param name="height">생성할 윈도우의 높이 값</param>
+        /// <returns>UGUIWindow</returns>
+        public static UGUIWindow CreateWindowEx<T>(string windowName, int x, int y, int width, int height) where T : UGUIWindow
         {
             // RectTransform 설정
             Action<GameObject> setupAction = (createdObject) =>
@@ -221,13 +244,23 @@ namespace UGUIWindow
             };
 
             // 공통 메소드 호출
-            return Instance.GetOrCreateWindow<T>(windowName, setupAction);
+            Type windowType = typeof(T);
+            return Instance.GetOrCreateWindow(windowType, windowName, setupAction);
         }
 
         /// <summary>
         /// 위치, 크기 등 추가 옵션을 지정하여 윈도우를 생성합니다.
         /// </summary>
-        public static UGUIWindow CreateWindowEx<T>(string windowName, int x, int y, int width, int height, Vector2 anchorMin, Vector2 anchorMax)
+        /// <typeparam name="T">생성할 윈도우의 Type</typeparam>
+        /// <param name="windowName">생성할 윈도우의 이름</param>
+        /// <param name="x">생성할 윈도우의 x 좌표 값</param>
+        /// <param name="y">생성할 윈도우의 y 좌표 값</param>
+        /// <param name="width">생성할 윈도우의 너비 값</param>
+        /// <param name="height">생성할 윈도우의 높이 값</param>
+        /// <param name="anchorMin">생성할 윈도우의 anchorMin</param>
+        /// <param name="anchorMax">생성할 윈도우의 anchorMax</param>
+        /// <returns>UGUIWindow</returns>
+        public static UGUIWindow CreateWindowEx<T>(string windowName, int x, int y, int width, int height, Vector2 anchorMin, Vector2 anchorMax) where T : UGUIWindow
         {
             // RectTransform 설정
             Action<GameObject> setupAction = (createdObject) =>
@@ -240,7 +273,8 @@ namespace UGUIWindow
             };
 
             // 공통 메소드 호출
-            return Instance.GetOrCreateWindow<T>(windowName, setupAction);
+            Type windowType = typeof(T);
+            return Instance.GetOrCreateWindow(windowType, windowName, setupAction);
         }
         #endregion
 
@@ -319,7 +353,7 @@ namespace UGUIWindow
             }
 
             // 열려있는 윈도우가 없다면
-            CreateWindow<UGUIApplicationSetting>();
+            CreateWindow(defaultWindowOnEscape.GetType());
         }
         #endregion
     }
