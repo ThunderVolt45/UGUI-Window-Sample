@@ -12,6 +12,8 @@ namespace UGUIWindow
 
         protected override void Start()
         {
+            base.Start();
+            
             InitailizeButton();
         }
 

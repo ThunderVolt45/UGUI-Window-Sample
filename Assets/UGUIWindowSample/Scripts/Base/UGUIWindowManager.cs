@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -148,10 +147,10 @@ namespace UGUIWindow
         private UGUIWindow GetOrCreateWindow(Type windowType, string windowName, Action<GameObject> postInstantiationAction = null)
         {
             // 타입 검사
-            if (!typeof(UGUIWindow).IsAssignableFrom(windowType))
-            {
-                throw new ArgumentException($"Passing {windowType.Name} as a parameter is not allowed");
-            }
+            // if (!typeof(UGUIWindow).IsAssignableFrom(windowType))
+            // {
+            //     throw new ArgumentException($"Passing {windowType.Name} as a parameter is not allowed");
+            // }
 
             string key = windowType.Name;
 
@@ -220,6 +219,12 @@ namespace UGUIWindow
         /// <returns>UGUIWindow</returns>
         public static UGUIWindow CreateWindow(Type windowType, string windowName = null)
         {
+            // 타입 검사
+            if (!typeof(UGUIWindow).IsAssignableFrom(windowType))
+            {
+                throw new ArgumentException($"Passing {windowType.Name} as a parameter is not allowed");
+            }
+
             return Instance.GetOrCreateWindow(windowType, windowName, null);
         }
 

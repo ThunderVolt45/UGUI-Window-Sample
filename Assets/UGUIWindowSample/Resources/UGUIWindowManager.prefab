@@ -173,6 +173,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5787970526414306312}
   - component: {fileID: 3592617366551086900}
+  - component: {fileID: 3110842646895468515}
   - component: {fileID: 1383225134348904252}
   m_Layer: 0
   m_Name: UGUIWindowManager
@@ -217,6 +218,21 @@ MonoBehaviour:
   defaultWindowOnEscape: {fileID: 8499739566993383437, guid: 5982d1f7b47cb984a8b849da55389920, type: 3}
   transformMinimizedObjectPool: {fileID: 8922654775922644939}
   transformDisabledObjectPool: {fileID: 505078789579773990}
+--- !u!114 &3110842646895468515
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7307416461942042429}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3acb8120f5952574985e8679a63b9f12, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  releaseLogLevel: 2
+  devLogLevel: 1
+  editorLogLevel: 0
 --- !u!114 &1383225134348904252
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -61,6 +61,17 @@ namespace UGUIWindow
 #endif
         }
 
+        private void OnValidate()
+        {
+#if UNITY_EDITOR
+            logLevel = editorLogLevel;
+#elif DEVELOPMENT_BUILD
+            logLevel = devLogLevel;
+#else
+            logLevel = releaseLogLevel;
+#endif
+        }
+
         public static void Log(object message)
         {
             if (Instance.logLevel > UGUIWindowLogLevel.Info)
