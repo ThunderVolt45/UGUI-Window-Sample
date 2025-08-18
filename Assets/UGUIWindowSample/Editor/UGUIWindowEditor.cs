@@ -131,9 +131,21 @@ namespace UGUIWindow
             Object borderPrefab = AssetDatabase.LoadAssetAtPath<Object>("Assets/UGUIWindowSample/Resources/BaseComponents/Borders.prefab");
             Object edgePrefab = AssetDatabase.LoadAssetAtPath<Object>("Assets/UGUIWindowSample/Resources/BaseComponents/Edges.prefab");
 
-            if (headerPrefab == null || borderPrefab == null || edgePrefab == null)
+            if (headerPrefab == null)
             {
-                Debug.LogError("Failed to load prefab at path: Assets/UGUIWindowSample/Resources/BaseComponents/");
+                Debug.LogError("Failed to load prefab at path: Assets/UGUIWindowSample/Resources/BaseComponents/Header.prefab");
+                return;
+            }
+
+            if (borderPrefab == null)
+            {
+                Debug.LogError("Failed to load prefab at path: Assets/UGUIWindowSample/Resources/BaseComponents/Borders.prefab");
+                return;
+            }
+
+            if (edgePrefab == null)
+            {
+                Debug.LogError("Failed to load prefab at path: Assets/UGUIWindowSample/Resources/BaseComponents/Edges.prefab");
                 return;
             }
 

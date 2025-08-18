@@ -93,6 +93,12 @@ namespace UGUIWindow
         #region Initialize
         private void Awake()
         {
+            // 인스턴스 중복이 감지된다면 자폭한다
+            if (_instance != null)
+            {
+                Destroy(gameObject);
+            }
+            
             // 캔버스 초기화
             InitializeCanvas();
 
