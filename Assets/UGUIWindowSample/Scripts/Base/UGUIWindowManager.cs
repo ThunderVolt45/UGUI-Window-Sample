@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -65,17 +66,22 @@ namespace UGUIWindow
         [SerializeField] private UGUIWindow defaultWindowOnEscape;
 
         [Header("Object Pool")]
-        [Tooltip("Window가 최소화되었을 때 이동할 Transform")]
-        [SerializeField] private Transform transformMinimizedObjectPool;
+        [Tooltip("Window가 최소화되었을 때 이동할 오브젝트의 CanvasScaler")]
+        [SerializeField] private CanvasScaler minimizedObjectPool;
 
-        [Tooltip("Window가 비활성화 되었을 때 이동할 Transform")]
-        [SerializeField] private Transform transformDisabledObjectPool;
+        [Tooltip("Window가 비활성화 되었을 때 이동할 오브젝트의 CanvasScaler")]
+        [SerializeField] private CanvasScaler disabledObjectPool;
 
         // 현재 열려있는 윈도우의 순서를 저장하는 이중 연결 리스트
         private DoublyLinkedList<UGUIWindow> currentlyOpenedWindows;
 
         // 생성된 윈도우가 저장된 오브젝트 풀
         private Dictionary<string, UGUIWindow> windowPool;
+
+        public static float CurrentDPI
+        {
+            get { return Instance._currentDPI; }
+        }
 
         public float ScreenMultiplierWidth
         {
@@ -87,6 +93,7 @@ namespace UGUIWindow
             get { return _screenMultiplierHeight; }
         }
 
+        private float _currentDPI = 2f;
         private float _screenMultiplierWidth = 1f;
         private float _screenMultiplierHeight = 1f;
 
@@ -132,11 +139,24 @@ namespace UGUIWindow
         }
         #endregion
 
-        // Update is called once per frame
-        void Update()
+        #region Canvas
+        /// <summary>
+        /// Canvas의 Reference Resolution 값을 DPI 설정에 맞춰 바꾸는 메소드
+        /// </summary>
+        /// <param name="dpi">목표 DPI % (1f = 100%)</param>
+        public static void ChangeCanvasDPI(float dpi)
         {
+            var currentResolution = Screen.currentResolution;
 
+            Instance._currentDPI = dpi;
+            Instance.baseCanvasScaler.referenceResolution =
+                new Vector2(currentResolution.width / dpi, currentResolution.height / dpi);
+            Instance.disabledObjectPool.referenceResolution =
+                new Vector2(currentResolution.width / dpi, currentResolution.height / dpi);
+            Instance.minimizedObjectPool.referenceResolution =
+                new Vector2(currentResolution.width / dpi, currentResolution.height / dpi);
         }
+        #endregion
 
         #region Window - Create
         /// <summary>
@@ -157,17 +177,25 @@ namespace UGUIWindow
             // 윈도우 풀 확인
             if (windowPool.TryGetValue(key, out var pooledWindow))
             {
-                pooledWindow.gameObject.SetActive(true);
+                if (pooledWindow != null)
+                {
+                    // 풀링된 윈도우를 메인 캔버스로 이동시키고 최상단에 표시
+                    pooledWindow.transform.SetParent(baseCanvas.transform);
+                    pooledWindow.transform.SetAsLastSibling();
 
-                // 풀링된 윈도우를 메인 캔버스로 이동시키고 최상단에 표시
-                pooledWindow.transform.SetParent(baseCanvas.transform);
-                pooledWindow.transform.SetAsLastSibling();
-                
-                // 이중 연결 리스트에서 최말단으로 이동
-                currentlyOpenedWindows.Remove(pooledWindow);
-                currentlyOpenedWindows.AddLast(pooledWindow);
+                    // 풀링된 오브젝트는 이동된 후에 활성화하는 것이 불필요한 "dirtying" 을 줄일 수 있다.
+                    pooledWindow.gameObject.SetActive(true);
 
-                return pooledWindow;
+                    // 이중 연결 리스트에서 최말단으로 이동
+                    currentlyOpenedWindows.Remove(pooledWindow);
+                    currentlyOpenedWindows.AddLast(pooledWindow);
+
+                    return pooledWindow;
+                }
+
+                // 모종의 이유로 풀링된 오브젝트가 파괴된 상태라면 딕셔너리에서 제거하고 생성 단계로 넘어간다.
+                UGUIWindowLog.LogError($"Found a window {key} in the object pool, but it was already destroyed!");
+                windowPool.Remove(key);
             }
 
             // 프리팹 로드 및 생성
@@ -212,7 +240,7 @@ namespace UGUIWindow
         }
 
         /// <summary>
-        /// 기본 윈도우를 생성하는 Non-Generic 함수입니다.
+        /// 윈도우를 생성하는 Non-Generic 함수입니다.
         /// </summary>
         /// <param name="windowType">생성할 윈도우의 Type</param>
         /// <param name="windowName">생성할 윈도우의 이름</param>
@@ -304,7 +332,7 @@ namespace UGUIWindow
             if (closedWindow.useObjectPooling && !closedWindow.allowMultipleInstance)
             {
                 // 윈도우를 오브젝트 풀 안으로 이동
-                closedWindow.transform.SetParent(transformDisabledObjectPool);
+                closedWindow.transform.SetParent(disabledObjectPool.transform);
             }
         }
 

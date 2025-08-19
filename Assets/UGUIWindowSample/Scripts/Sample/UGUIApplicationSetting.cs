@@ -96,6 +96,7 @@ namespace UGUIWindow
             dropdownWindowMode.onValueChanged.AddListener(OnWindowModeChanged);
             dropdownResolution.onValueChanged.AddListener(OnResolutionChanged);
             dropdownFramerate.onValueChanged.AddListener(OnFramerateChanged);
+            dropdownDPI.onValueChanged.AddListener(OnDPIChanged);
         }
 
         private void InitalizeButton()
@@ -112,6 +113,7 @@ namespace UGUIWindow
             targetWidth = currentResolution.width;
             targetHeight = currentResolution.height;
             targetFrameRate = currentResolution.refreshRateRatio;
+            targetDPI = UGUIWindowManager.CurrentDPI;
 
             // 현재 윈도우 모드를 찾아서 선택
             switch (Screen.fullScreenMode)
@@ -150,6 +152,20 @@ namespace UGUIWindow
                     break;
                 }
             }
+
+            // 현재 DPI 값을 찾아서 선택
+            switch (targetDPI)
+            {
+                case 1f:
+                    dropdownDPI.SetValueWithoutNotify(0);
+                    break;
+                case 1.5f:
+                    dropdownDPI.SetValueWithoutNotify(1);
+                    break;
+                default:
+                    dropdownDPI.SetValueWithoutNotify(2);
+                    break;
+            }
         }
         #endregion
 
@@ -176,7 +192,7 @@ namespace UGUIWindow
         private void OnResolutionChanged(int value)
         {
             string[] splited = dropdownResolution.options[value].text.Split('x');
-        
+
             targetWidth = int.Parse(splited[0]);
             targetHeight = int.Parse(splited[1]);
         }
@@ -201,7 +217,25 @@ namespace UGUIWindow
 
             targetFrameRate = framerateList[value];
         }
-        
+
+        private void OnDPIChanged(int value)
+        {
+            switch (value)
+            {
+                case 0:
+                    targetDPI = 1f;
+                    break;
+                case 1:
+                    targetDPI = 1.5f;
+                    break;
+                default:
+                    targetDPI = 2f;
+                    break;
+            }
+        }
+        #endregion
+
+        #region Setting
         private void ApplySetting()
         {
             UGUIWindowLog.LogError($"Set Screen Resolution to: {targetWidth}x{targetHeight} {targetFrameRate}Hz {targetWindowMode}");
@@ -213,6 +247,7 @@ namespace UGUIWindow
             }
 
             Screen.SetResolution(targetWidth, targetHeight, targetWindowMode, targetFrameRate);
+            UGUIWindowManager.ChangeCanvasDPI(targetDPI);
         }
         #endregion
     }
