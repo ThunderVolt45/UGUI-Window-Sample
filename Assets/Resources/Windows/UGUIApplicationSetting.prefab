@@ -775,6 +775,13 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   minimumResolution: {x: 1280, y: 720}
+  minimumFPS: 60
+  supportDPI:
+  - 1
+  - 1.5
+  - 2
+  - 2.5
+  - 3
   dropdownWindowMode: {fileID: 28753237231093858}
   dropdownResolution: {fileID: 368508553840059556}
   dropdownFramerate: {fileID: 2628009672359516957}
