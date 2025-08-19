@@ -247,7 +247,7 @@ namespace UGUIWindow
             }
 
             Screen.SetResolution(targetWidth, targetHeight, targetWindowMode, targetFrameRate);
-            UGUIWindowManager.ChangeCanvasDPI(targetDPI);
+            UGUIWindowManager.ChangeCanvasDPI(targetWidth, targetHeight, targetDPI);
         }
         #endregion
     }

@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -143,18 +142,18 @@ namespace UGUIWindow
         /// <summary>
         /// Canvas의 Reference Resolution 값을 DPI 설정에 맞춰 바꾸는 메소드
         /// </summary>
+        /// <param name="screenWidth">현재 화면의 너비</param>
+        /// <param name="screenHeight">현재 화면의 높이</param>
         /// <param name="dpi">목표 DPI % (1f = 100%)</param>
-        public static void ChangeCanvasDPI(float dpi)
+        public static void ChangeCanvasDPI(int screenWidth, int screenHeight, float dpi)
         {
-            var currentResolution = Screen.currentResolution;
-
             Instance._currentDPI = dpi;
             Instance.baseCanvasScaler.referenceResolution =
-                new Vector2(currentResolution.width / dpi, currentResolution.height / dpi);
+                new Vector2(screenWidth / dpi, screenHeight / dpi);
             Instance.disabledObjectPool.referenceResolution =
-                new Vector2(currentResolution.width / dpi, currentResolution.height / dpi);
+                new Vector2(screenWidth / dpi, screenHeight / dpi);
             Instance.minimizedObjectPool.referenceResolution =
-                new Vector2(currentResolution.width / dpi, currentResolution.height / dpi);
+                new Vector2(screenWidth / dpi, screenHeight / dpi);
         }
         #endregion
 
