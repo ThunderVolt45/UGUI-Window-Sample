@@ -231,7 +231,7 @@ namespace UGUIWindow
             }
 
             // 현재 열려있는 윈도우 리스트에 등록
-            currentlyOpenedWindows.AddFirst(createdWindow);
+            currentlyOpenedWindows.AddLast(createdWindow);
 
             // 윈도우 이벤트 리스너 등록
             createdWindow.OnFocusWindow.AddListener(OnWindowFocused);

@@ -5,7 +5,6 @@ using UnityEngine.UI;
 namespace UGUIWindow
 {
     [RequireComponent(typeof(Canvas))]
-    [RequireComponent(typeof(CanvasScaler))]
     [RequireComponent(typeof(GraphicRaycaster))]
     public class UGUIDesktop : MonoBehaviour
     {

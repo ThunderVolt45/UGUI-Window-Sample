@@ -871,15 +871,20 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 6894398361665607810, guid: d2f06a7433329fc4982a36e3a0209c50, type: 3}
-      propertyPath: m_Spacing.y
-      value: 30
+    - target: {fileID: 6165299638832401986, guid: d2f06a7433329fc4982a36e3a0209c50, type: 3}
+      propertyPath: m_AdditionalShaderChannelsFlag
+      value: 25
       objectReference: {fileID: 0}
     - target: {fileID: 7248935332715585270, guid: d2f06a7433329fc4982a36e3a0209c50, type: 3}
       propertyPath: m_Name
       value: UGUIDesktop
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    - target: {fileID: 7435681041530853244, guid: d2f06a7433329fc4982a36e3a0209c50, type: 3}
+      propertyPath: m_AdditionalShaderChannelsFlag
+      value: 25
+      objectReference: {fileID: 0}
+    m_RemovedComponents:
+    - {fileID: 7012785468415620635, guid: d2f06a7433329fc4982a36e3a0209c50, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 6187948510998338882, guid: d2f06a7433329fc4982a36e3a0209c50, type: 3}
