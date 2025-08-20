@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace UGUIWindow
@@ -50,7 +51,6 @@ namespace UGUIWindow
             }
         }
 
-
         [Header("Settings")]
         [Tooltip("Window prefab을 가져올 기본 경로")]
         [SerializeField] private string defaultWindowPath = "Windows/";
@@ -70,6 +70,11 @@ namespace UGUIWindow
 
         [Tooltip("Window가 비활성화 되었을 때 이동할 오브젝트의 CanvasScaler")]
         [SerializeField] private CanvasScaler disabledObjectPool;
+
+        [Header("Event Listener")]
+        [Space(5f)]
+        [Tooltip("DPI 설정이 변경되었을 때 실행할 Event")]
+        public UnityEvent<int, int, float> OnDPIChanged;
 
         // 현재 열려있는 윈도우의 순서를 저장하는 이중 연결 리스트
         private DoublyLinkedList<UGUIWindow> currentlyOpenedWindows;
@@ -132,9 +137,9 @@ namespace UGUIWindow
         void Start()
         {
             CreateWindow<UGUIWindow>();
+            CreateWindowEx<UGUIWindowMultipleInstanceSample>("MultipleInstanceSample", -200, 0, 250, 250);
+            CreateWindowEx<UGUIWindowMultipleInstanceSample>("MultipleInstanceSample", -150, 50, 250, 250);
             CreateWindowEx<UGUIWindowMultipleInstanceSample>("MultipleInstanceSample", -100, 100, 250, 250);
-            CreateWindowEx<UGUIWindowMultipleInstanceSample>("MultipleInstanceSample", -50, 150, 250, 250);
-            CreateWindowEx<UGUIWindowMultipleInstanceSample>("MultipleInstanceSample", 0, 200, 250, 250);
         }
         #endregion
 
@@ -145,15 +150,24 @@ namespace UGUIWindow
         /// <param name="screenWidth">현재 화면의 너비</param>
         /// <param name="screenHeight">현재 화면의 높이</param>
         /// <param name="dpi">목표 DPI % (1f = 100%)</param>
-        public static void ChangeCanvasDPI(int screenWidth, int screenHeight, float dpi)
+        public static void SetDPI(int screenWidth, int screenHeight, float dpi)
         {
-            Instance._currentDPI = dpi;
-            Instance.baseCanvasScaler.referenceResolution =
+            Instance.ChangeCanvasResolution(screenWidth, screenHeight, dpi);
+        }
+
+        private void ChangeCanvasResolution(int screenWidth, int screenHeight, float dpi)
+        {
+            _currentDPI = dpi;
+
+            baseCanvasScaler.referenceResolution =
                 new Vector2(screenWidth / dpi, screenHeight / dpi);
-            Instance.disabledObjectPool.referenceResolution =
+            disabledObjectPool.referenceResolution =
                 new Vector2(screenWidth / dpi, screenHeight / dpi);
-            Instance.minimizedObjectPool.referenceResolution =
+            minimizedObjectPool.referenceResolution =
                 new Vector2(screenWidth / dpi, screenHeight / dpi);
+
+            // DPI 설정이 바뀌었음을 알림
+            OnDPIChanged?.Invoke(screenWidth, screenHeight, dpi);
         }
         #endregion
 

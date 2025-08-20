@@ -17,8 +17,8 @@ namespace UGUIWindow
     public class UGUIWindow : MonoBehaviour, IPointerDownHandler
     {
         #region Inspector Fields
-        [Header("Window Mode")]
-        public UGUIWindowMode windowMode = UGUIWindowMode.Windowed;
+        // [Header("Window Mode")]
+        // public UGUIWindowMode windowMode = UGUIWindowMode.Windowed;
 
         [Header("Base Components")]
         public UGUIWindowHeader windowHeader;
