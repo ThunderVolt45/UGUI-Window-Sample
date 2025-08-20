@@ -159,12 +159,19 @@ namespace UGUIWindow
         {
             _currentDPI = dpi;
 
+            float referecnceWidth = screenWidth / dpi;
+            float referecnceHeight = screenHeight / dpi;
+
+            // 각 Canvas Scaler의 해상도 변경
             baseCanvasScaler.referenceResolution =
-                new Vector2(screenWidth / dpi, screenHeight / dpi);
+                new Vector2(referecnceWidth, referecnceHeight);
             disabledObjectPool.referenceResolution =
-                new Vector2(screenWidth / dpi, screenHeight / dpi);
+                new Vector2(referecnceWidth, referecnceHeight);
             minimizedObjectPool.referenceResolution =
-                new Vector2(screenWidth / dpi, screenHeight / dpi);
+                new Vector2(referecnceWidth, referecnceHeight);
+
+            _screenMultiplierWidth = referecnceWidth / screenWidth;
+            _screenMultiplierHeight = referecnceHeight / screenHeight;
 
             // DPI 설정이 바뀌었음을 알림
             OnDPIChanged?.Invoke(screenWidth, screenHeight, dpi);
