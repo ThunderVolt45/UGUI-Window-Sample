@@ -137,7 +137,7 @@ namespace UGUIWindow
         void Start()
         {
             CreateWindow<UGUIWindow>();
-            CreateWindowEx<UGUIWindowMultipleInstanceSample>("MultipleInstanceSample", -200, 0, 250, 250);
+            CreateWindowEx<UGUIWindowMultipleInstanceSample>(null, -200, 0, 250, 250);
             CreateWindowEx<UGUIWindowMultipleInstanceSample>("MultipleInstanceSample", -150, 50, 250, 250);
             CreateWindowEx<UGUIWindowMultipleInstanceSample>("MultipleInstanceSample", -100, 100, 250, 250);
         }

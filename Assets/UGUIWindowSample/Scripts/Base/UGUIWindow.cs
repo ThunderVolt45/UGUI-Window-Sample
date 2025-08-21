@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -8,17 +9,17 @@ namespace UGUIWindow
 {
     public enum UGUIWindowMode
     {
-        FullScreen,
-        Borderless,
-        Windowed
+        Windowed,
+        Maximized,
+        Minimized
     }
 
     [RequireComponent(typeof(Image))]
     public class UGUIWindow : MonoBehaviour, IPointerDownHandler
     {
         #region Inspector Fields
-        // [Header("Window Mode")]
-        // public UGUIWindowMode windowMode = UGUIWindowMode.Windowed;
+        [Header("Window Mode")]
+        [SerializeField] private UGUIWindowMode _windowMode = UGUIWindowMode.Windowed;
 
         [Header("Base Components")]
         public UGUIWindowHeader windowHeader;
@@ -42,8 +43,8 @@ namespace UGUIWindow
         [Tooltip("윈도우가 나가기 버튼을 갖나요? 헤더가 존재하는 경우에만 활성화됩니다.")]
         [SerializeField] private bool _hasExitButton = false;
 
-        // [Tooltip("윈도우가 최대화/복원 버튼을 갖나요? 헤더가 존재하고 크기를 조절할 수 있는 경우에만 활성화됩니다.")]
-        // public bool hasMaximizeButton = false;
+        [Tooltip("윈도우가 최대화/복원 버튼을 갖나요? 헤더가 존재하고 크기를 조절할 수 있는 경우에만 활성화됩니다.")]
+        [SerializeField] private bool _hasMaximizeButton = false;
 
         // [Tooltip("윈도우가 최소화 버튼을 갖나요? 헤더가 존재하는 경우에만 활성화됩니다.")]
         // public bool hasMinimizeButton = false;
@@ -59,9 +60,31 @@ namespace UGUIWindow
 
         [Tooltip("윈도우가 가져야 할 최소 크기")]
         public Vector2 minimumWindowSize = new Vector2(100, 100);
+
+        [Header("Window Events")]
+        [Space(5f)]
+        [Tooltip("윈도우가 포커스를 받았을 때 호출할 이벤트")]
+        public UnityEvent<UGUIWindow> OnFocusWindow;
+
+        [Tooltip("윈도우가 닫힐 때 호출할 이벤트")]
+        public UnityEvent<UGUIWindow> OnCloseWindow;
         #endregion
 
         #region properties
+        public UGUIWindowMode WindowMode
+        {
+            get { return _windowMode; }
+            set
+            {
+                if (_windowMode != value) // 값이 진짜로 바뀌었는 지 확인
+                {
+                    // 상태 변경
+                    _windowMode = value;
+                    ChangeWindowMode(_windowMode);
+                }
+            }
+        }
+
         public bool HasHeader
         {
             get { return _hasHeader; }
@@ -103,23 +126,37 @@ namespace UGUIWindow
                 }
             }
         }
+
+        public bool HasMaximizeButton
+        {
+            get { return _hasMaximizeButton; }
+            set
+            {
+                if (_hasMaximizeButton != value) // 값이 진짜로 바뀌었는 지 확인
+                {
+                    // 버튼 상태 변경
+                    _hasMaximizeButton = value;
+                    SetWindowMaximizeButton(_hasMaximizeButton);
+                }
+            }
+        }
         #endregion
 
-        // 윈도우가 포커스를 받았을 때 호출할 이벤트
-        [HideInInspector]
-        public UnityEvent<UGUIWindow> OnFocusWindow;
-
-        // 윈도우가 닫힐 때 호출할 이벤트
-        [HideInInspector]
-        public UnityEvent<UGUIWindow> OnCloseWindow;
-
+        #region Variables
+        // UGUIWindowManager의 인스턴스
         private UGUIWindowManager windowManager;
 
 #if UNITY_EDITOR
+        private UGUIWindowMode _prevWindowMode;
         private bool _prevHasHeaderState;
         private bool _prevHasBorderState;
         private bool _prevHasExitButtonState;
+        private bool _prevHasMaximizeButtonState;
 #endif
+
+        // 윈도우의 이전 상태를 기록하는 클래스
+        private UGUIWindowState _lastWindowState;
+        #endregion
 
         #region Initialize
         protected virtual void Awake()
@@ -127,15 +164,20 @@ namespace UGUIWindow
             // 윈도우 매니저의 인스턴스를 가져옴
             windowManager = UGUIWindowManager.Instance;
 
-#if UNITY_EDITOR
-            _prevHasHeaderState = _hasHeader;
-            _prevHasBorderState = _hasBorder;
-            _prevHasExitButtonState = _hasExitButton;
-#endif
             // 윈도우의 각 컴포넌트를 초기화
             SetWindowHeader(_hasHeader);
             SetWindowBorder(_hasBorder);
             SetWindowExitButton(_hasExitButton);
+
+            // 현재 윈도우의 상태를 기록함
+            _lastWindowState = new UGUIWindowState(this);
+#if UNITY_EDITOR
+            _prevWindowMode = _windowMode;
+            _prevHasHeaderState = _hasHeader;
+            _prevHasBorderState = _hasBorder;
+            _prevHasExitButtonState = _hasExitButton;
+            _prevHasMaximizeButtonState = _hasMaximizeButton;
+#endif
         }
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -145,7 +187,7 @@ namespace UGUIWindow
         }
         #endregion
 
-        #region Unity - Callback
+        #region Inspector
 #if UNITY_EDITOR
         private void OnValidate()
         {
@@ -166,6 +208,18 @@ namespace UGUIWindow
                 SetWindowExitButton(_hasExitButton);
                 _prevHasExitButtonState = _hasExitButton;
             }
+
+            if (_hasMaximizeButton != _prevHasMaximizeButtonState)
+            {
+                SetWindowMaximizeButton(_hasMaximizeButton);
+                _prevHasMaximizeButtonState = _hasMaximizeButton;
+            }
+
+            if (_windowMode != _prevWindowMode)
+            {
+                ChangeWindowMode(_windowMode);
+                _prevWindowMode = _windowMode;
+            }
         }
 #endif
         #endregion
@@ -183,7 +237,15 @@ namespace UGUIWindow
         {
             if (windowHeader != null)
             {
-                windowHeader.SetButton(hasExitButton);
+                windowHeader.SetExitButtonActive(hasExitButton);
+            }
+        }
+
+        private void SetWindowMaximizeButton(bool hasMaximizeButton)
+        {
+            if (windowHeader != null)
+            {
+                windowHeader.SetMaximizeButtonActive(hasMaximizeButton);
             }
         }
 
@@ -227,6 +289,73 @@ namespace UGUIWindow
             {
                 Destroy(gameObject);
             }
+        }
+
+        public void ChangeWindowMode(UGUIWindowMode windowMode)
+        {
+            switch (windowMode)
+            {
+                case UGUIWindowMode.Windowed:
+                    RestoreWindow();
+                    break;
+                case UGUIWindowMode.Maximized:
+                    Maximize();
+                    break;
+                case UGUIWindowMode.Minimized:
+                default:
+                    UGUIWindowLog.LogError($"Change Window Mode to {windowMode} is undefined!");
+                    break;
+            }
+        }
+
+        public void Maximize()
+        {
+            if (!isResizable)
+            {
+                UGUIWindowLog.LogError($"This Window {GetType()} cannot be resized!");
+                return;
+            }
+
+            // 창의 크기를 복원할 때 쓸 수 있도록 Window의 이전 상태를 기록한다.
+            _lastWindowState = new UGUIWindowState(this);
+            Debug.Log(_lastWindowState.sizeDelta);
+
+            // 계산 준비
+            RectTransform windowTransform = transform as RectTransform;
+            float headerHeight = 0f;
+
+            if (windowHeader != null)
+            {
+                RectTransform headerTransform = windowHeader.transform as RectTransform;
+                headerHeight = headerTransform.anchoredPosition.y;
+            }
+
+            // Window의 크기를 최대화한다.
+            windowTransform.anchorMin = Vector2.zero;
+            windowTransform.anchorMax = Vector2.one;
+            windowTransform.anchoredPosition = new Vector2(0, -headerHeight / 2);
+            windowTransform.sizeDelta = new Vector2(0, -headerHeight);
+
+            // 경계를 없애고 움직일 수 없게 고정한다.
+            HasBorder = false;
+            isMovable = false;
+
+            // 마무리 처리
+            _windowMode = UGUIWindowMode.Maximized;
+            OnGetFocus();
+        }
+
+        public void RestoreWindow()
+        {
+            if (!isResizable)
+            {
+                UGUIWindowLog.LogError($"This Window {GetType()} cannot be resized!");
+                return;
+            }
+
+            // 윈도우를 이전 상태로 되돌린다.
+            _lastWindowState.RestoreWindowFromState(this);
+            _windowMode = UGUIWindowMode.Windowed;
         }
         #endregion
 

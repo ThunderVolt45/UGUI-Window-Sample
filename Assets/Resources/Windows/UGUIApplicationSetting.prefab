@@ -756,7 +756,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3127e6a58e675474a9eb44fefd33baed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  windowMode: 2
+  windowMode: 0
   windowHeader: {fileID: 0}
   windowBorders: []
   windowEdges: []
@@ -765,6 +765,7 @@ MonoBehaviour:
   _hasHeader: 0
   _hasBorder: 0
   _hasExitButton: 0
+  _hasMaximizeButton: 0
   isMovable: 0
   isResizable: 0
   minimumWindowSize: {x: 100, y: 100}

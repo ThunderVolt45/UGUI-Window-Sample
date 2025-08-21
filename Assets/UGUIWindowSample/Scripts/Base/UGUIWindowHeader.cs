@@ -11,8 +11,7 @@ namespace UGUIWindow
         [Header("Header Components")]
         public TMP_Text windowTitle;
         public Button buttonExit;
-
-        // public Button buttonMaximize;
+        public Button buttonMaximize;
         // public Button buttonMinimize;
 
         private UGUIWindowManager windowManager;
@@ -27,29 +26,47 @@ namespace UGUIWindow
             windowManager = UGUIWindowManager.Instance;
             parentWindow = GetComponentInParent<UGUIWindow>();
 
-            // 헤더 포지션 설정
-            // RectTransform rectTransform = transform as RectTransform;
-            // rectTransform.anchoredPosition = new Vector2(0, rectTransform.sizeDelta.y - parentWindow.borderSize);
-
             // 버튼 이벤트 리스너 부착
             buttonExit.onClick.AddListener(parentWindow.Close);
-            // buttonMaximize.onClick.AddListener();
+            buttonMaximize.onClick.AddListener(MaximizeOrRestoreWindow);
             // buttonMinimize.onClick.AddListener();
         }
 
-        #region Setter
+        private void MaximizeOrRestoreWindow()
+        {
+            switch (parentWindow.WindowMode)
+            {
+                case UGUIWindowMode.Windowed:
+                case UGUIWindowMode.Minimized:
+                    parentWindow.Maximize();
+                    break;
+                case UGUIWindowMode.Maximized:
+                    parentWindow.RestoreWindow();
+                    break;
+                default:
+                    UGUIWindowLog.LogError($"Window Mode {parentWindow.WindowMode} is undefined!");
+                    break;
+            }
+        }
+
+        #region Settings
         public void SetTitle(string title)
         {
             windowTitle.text = title;
         }
 
-        public void SetButton(bool exitButton)
+        public void SetExitButtonActive(bool exitButton)
         {
             buttonExit.gameObject.SetActive(exitButton);
         }
+
+        public void SetMaximizeButtonActive(bool maximizeButton)
+        {
+            buttonMaximize.gameObject.SetActive(maximizeButton);
+        }
         #endregion
 
-        #region Interface
+        #region Pointer Event
         public void OnPointerDown(PointerEventData eventData)
         {
             parentWindow.OnGetFocus();

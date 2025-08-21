@@ -92,7 +92,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe88034269c62ec49b60189c160c6ffc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  windowMode: 2
+  windowMode: 0
   windowHeader: {fileID: 7831239607570330441}
   windowBorders:
   - {fileID: 7992742308549904391}
@@ -114,6 +114,7 @@ MonoBehaviour:
   _hasHeader: 1
   _hasBorder: 1
   _hasExitButton: 1
+  _hasMaximizeButton: 1
   isMovable: 1
   isResizable: 1
   minimumWindowSize: {x: 100, y: 100}
@@ -347,6 +348,10 @@ PrefabInstance:
       propertyPath: m_overflowMode
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 2419745762867701888, guid: 7f5b30acbd0eb06479c72263c5691577, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8327802550203321378, guid: 7f5b30acbd0eb06479c72263c5691577, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -370,10 +375,6 @@ PrefabInstance:
     - target: {fileID: 8327802550203321378, guid: 7f5b30acbd0eb06479c72263c5691577, type: 3}
       propertyPath: m_AnchorMin.y
       value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8327802550203321378, guid: 7f5b30acbd0eb06479c72263c5691577, type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8327802550203321378, guid: 7f5b30acbd0eb06479c72263c5691577, type: 3}
       propertyPath: m_SizeDelta.y
@@ -406,14 +407,6 @@ PrefabInstance:
     - target: {fileID: 8327802550203321378, guid: 7f5b30acbd0eb06479c72263c5691577, type: 3}
       propertyPath: m_LocalRotation.z
       value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8327802550203321378, guid: 7f5b30acbd0eb06479c72263c5691577, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8327802550203321378, guid: 7f5b30acbd0eb06479c72263c5691577, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 26
       objectReference: {fileID: 0}
     - target: {fileID: 8327802550203321378, guid: 7f5b30acbd0eb06479c72263c5691577, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
