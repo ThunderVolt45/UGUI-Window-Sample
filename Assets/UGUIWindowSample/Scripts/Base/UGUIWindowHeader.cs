@@ -12,7 +12,7 @@ namespace UGUIWindow
         public TMP_Text windowTitle;
         public Button buttonExit;
         public Button buttonMaximize;
-        // public Button buttonMinimize;
+        public Button buttonMinimize;
 
         private UGUIWindowManager windowManager;
         private UGUIWindow parentWindow;
@@ -29,7 +29,7 @@ namespace UGUIWindow
             // 버튼 이벤트 리스너 부착
             buttonExit.onClick.AddListener(parentWindow.Close);
             buttonMaximize.onClick.AddListener(MaximizeOrRestoreWindow);
-            // buttonMinimize.onClick.AddListener();
+            buttonMinimize.onClick.AddListener(parentWindow.Minimize);
         }
 
         private void MaximizeOrRestoreWindow()
@@ -69,7 +69,7 @@ namespace UGUIWindow
         #region Pointer Event
         public void OnPointerDown(PointerEventData eventData)
         {
-            parentWindow.OnGetFocus();
+            parentWindow.Focus();
         }
 
         public void OnBeginDrag(PointerEventData eventData)
@@ -99,6 +99,7 @@ namespace UGUIWindow
         public void OnEndDrag(PointerEventData eventData)
         {
             isDragging = false;
+            parentWindow.MemorizeLastWindowState();
         }
         #endregion
     }

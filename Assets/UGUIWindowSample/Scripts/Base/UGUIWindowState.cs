@@ -1,7 +1,9 @@
+using System;
 using UnityEngine;
 
 namespace UGUIWindow
 {
+    [Serializable]
     public class UGUIWindowState
     {
         #region Position & Size

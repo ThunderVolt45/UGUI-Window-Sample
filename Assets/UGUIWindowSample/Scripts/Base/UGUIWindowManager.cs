@@ -57,8 +57,7 @@ namespace UGUIWindow
 
         [Header("Canvas")]
         [Tooltip("Window가 표시될 Canvas")]
-        [SerializeField] private Canvas baseCanvas;
-        [SerializeField] private CanvasScaler baseCanvasScaler;
+        [SerializeField] private CanvasScaler mainCanvasScaler;
 
         [Header("Default Window")]
         [Tooltip("활성화된 Window가 없는 상태에서 Escape를 받았을 때 생성할 Window")]
@@ -126,7 +125,7 @@ namespace UGUIWindow
 
         private void InitializeCanvas()
         {
-            var referenceResolution = baseCanvasScaler.referenceResolution;
+            var referenceResolution = mainCanvasScaler.referenceResolution;
             var currentResolution = Screen.currentResolution;
 
             _screenMultiplierWidth = referenceResolution.x / (float)currentResolution.width;
@@ -163,7 +162,7 @@ namespace UGUIWindow
             float referecnceHeight = screenHeight / dpi;
 
             // 각 Canvas Scaler의 해상도 변경
-            baseCanvasScaler.referenceResolution =
+            mainCanvasScaler.referenceResolution =
                 new Vector2(referecnceWidth, referecnceHeight);
             disabledObjectPool.referenceResolution =
                 new Vector2(referecnceWidth, referecnceHeight);
@@ -200,15 +199,11 @@ namespace UGUIWindow
                 if (pooledWindow != null)
                 {
                     // 풀링된 윈도우를 메인 캔버스로 이동시키고 최상단에 표시
-                    pooledWindow.transform.SetParent(baseCanvas.transform);
+                    pooledWindow.transform.SetParent(mainCanvasScaler.transform);
                     pooledWindow.transform.SetAsLastSibling();
 
-                    // 풀링된 오브젝트는 이동된 후에 활성화하는 것이 불필요한 "dirtying" 을 줄일 수 있다.
-                    pooledWindow.gameObject.SetActive(true);
-
-                    // 이중 연결 리스트에서 최말단으로 이동
-                    currentlyOpenedWindows.Remove(pooledWindow);
-                    currentlyOpenedWindows.AddLast(pooledWindow);
+                    // 윈도우를 연다.
+                    pooledWindow.Open();
 
                     return pooledWindow;
                 }
@@ -220,7 +215,7 @@ namespace UGUIWindow
 
             // 프리팹 로드 및 생성
             var windowPrefab = Resources.Load(defaultWindowPath + key);
-            GameObject createdObject = Instantiate(windowPrefab, baseCanvas.transform) as GameObject;
+            GameObject createdObject = Instantiate(windowPrefab, mainCanvasScaler.transform) as GameObject;
             UGUIWindow createdWindow = createdObject.GetComponent<UGUIWindow>();
 
             // 메소드별 특화 로직 실행
@@ -241,8 +236,10 @@ namespace UGUIWindow
             currentlyOpenedWindows.AddLast(createdWindow);
 
             // 윈도우 이벤트 리스너 등록
-            createdWindow.OnFocusWindow.AddListener(OnWindowFocused);
+            createdWindow.OnOpenWindow.AddListener(OnWindowOpened);
             createdWindow.OnCloseWindow.AddListener(OnWindowClosed);
+            createdWindow.OnFocusWindow.AddListener(OnWindowFocused);
+            createdWindow.OnMinimizeWindow.AddListener(OnWindowMinimized);
 
             return createdWindow;
         }
@@ -332,16 +329,36 @@ namespace UGUIWindow
         #endregion
 
         #region Window - Event
+        private void OnWindowOpened(UGUIWindow openedWindow)
+        {
+            // 윈도우를 기본 캔버스로 이동시킨다.
+            openedWindow.transform.SetParent(mainCanvasScaler.transform);
+
+            // 오브젝트를 최상단으로 올림
+            openedWindow.transform.SetAsLastSibling();
+
+            // 이중 연결 리스트에서 최말단으로 이동
+            currentlyOpenedWindows.Remove(openedWindow);
+            currentlyOpenedWindows.AddLast(openedWindow);
+        }
+
         private void OnWindowFocused(UGUIWindow focusedWindow)
         {
-            UGUIWindowLog.Log($"{focusedWindow.name} get focus!");
-
             // 오브젝트를 최상단으로 올림
             focusedWindow.transform.SetAsLastSibling();
 
             // 이중 연결 리스트에서 최말단으로 이동
             currentlyOpenedWindows.Remove(focusedWindow);
             currentlyOpenedWindows.AddLast(focusedWindow);
+        }
+
+        private void OnWindowMinimized(UGUIWindow minimizedWindow)
+        {
+            // 최소화된 윈도우는 일단 열린 상태는 아닌 것으로 간주한다.
+            currentlyOpenedWindows.Remove(minimizedWindow);
+
+            // 윈도우를 최소화 풀로 이동시킨다.
+            minimizedWindow.transform.SetParent(minimizedObjectPool.transform);
         }
 
         private void OnWindowClosed(UGUIWindow closedWindow)

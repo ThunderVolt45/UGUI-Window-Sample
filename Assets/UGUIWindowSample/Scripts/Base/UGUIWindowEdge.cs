@@ -32,7 +32,7 @@ namespace UGUIWindow
         #region Interface
         public void OnPointerDown(PointerEventData eventData)
         {
-            parentWindow.OnGetFocus();
+            parentWindow.Focus();
         }
 
         public void OnBeginDrag(PointerEventData eventData)
@@ -114,6 +114,7 @@ namespace UGUIWindow
         public void OnEndDrag(PointerEventData eventData)
         {
             isDragging = false;
+            parentWindow.MemorizeLastWindowState();
         }
         #endregion
     }

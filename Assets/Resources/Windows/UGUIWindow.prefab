@@ -92,7 +92,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe88034269c62ec49b60189c160c6ffc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  windowMode: 0
+  _windowMode: 0
   windowHeader: {fileID: 7831239607570330441}
   windowBorders:
   - {fileID: 7992742308549904391}
@@ -345,8 +345,8 @@ PrefabInstance:
     m_TransformParent: {fileID: 8565156740118482739}
     m_Modifications:
     - target: {fileID: 1487922873248336370, guid: 7f5b30acbd0eb06479c72263c5691577, type: 3}
-      propertyPath: m_overflowMode
-      value: 3
+      propertyPath: m_text
+      value: Title
       objectReference: {fileID: 0}
     - target: {fileID: 2419745762867701888, guid: 7f5b30acbd0eb06479c72263c5691577, type: 3}
       propertyPath: m_IsActive

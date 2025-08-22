@@ -63,11 +63,17 @@ namespace UGUIWindow
 
         [Header("Window Events")]
         [Space(5f)]
-        [Tooltip("윈도우가 포커스를 받았을 때 호출할 이벤트")]
-        public UnityEvent<UGUIWindow> OnFocusWindow;
+        [Tooltip("윈도우가 열릴 때 호출할 이벤트")]
+        public UnityEvent<UGUIWindow> OnOpenWindow;
 
         [Tooltip("윈도우가 닫힐 때 호출할 이벤트")]
         public UnityEvent<UGUIWindow> OnCloseWindow;
+
+        [Tooltip("윈도우가 포커스를 받았을 때 호출할 이벤트")]
+        public UnityEvent<UGUIWindow> OnFocusWindow;
+
+        [Tooltip("윈도우가 최소화될 때 호출할 이벤트")]
+        public UnityEvent<UGUIWindow> OnMinimizeWindow;
         #endregion
 
         #region properties
@@ -78,9 +84,8 @@ namespace UGUIWindow
             {
                 if (_windowMode != value) // 값이 진짜로 바뀌었는 지 확인
                 {
-                    // 상태 변경
-                    _windowMode = value;
-                    ChangeWindowMode(_windowMode);
+                    // 상태 변경, 값은 반드시 ChangeWindowMode()를 통해서만 변경되어야 한다.
+                    ChangeWindowMode(value);
                 }
             }
         }
@@ -155,7 +160,7 @@ namespace UGUIWindow
 #endif
 
         // 윈도우의 이전 상태를 기록하는 클래스
-        private UGUIWindowState _lastWindowState;
+        [SerializeField] private UGUIWindowState _lastWindowState;
         #endregion
 
         #region Initialize
@@ -275,6 +280,9 @@ namespace UGUIWindow
         public void Open()
         {
             gameObject.SetActive(true);
+
+            // 윈도우가 열렸음을 윈도우 매니저에 알림
+            OnOpenWindow?.Invoke(this);
         }
 
         public void Close()
@@ -291,17 +299,27 @@ namespace UGUIWindow
             }
         }
 
+        public void Focus()
+        {
+            // 윈도우가 포커스를 얻었음을 윈도우 매니저에 알림
+            OnFocusWindow?.Invoke(this);
+        }
+
         public void ChangeWindowMode(UGUIWindowMode windowMode)
         {
             switch (windowMode)
             {
                 case UGUIWindowMode.Windowed:
                     RestoreWindow();
+                    Open();
                     break;
                 case UGUIWindowMode.Maximized:
                     Maximize();
+                    Open();
                     break;
                 case UGUIWindowMode.Minimized:
+                    Minimize();
+                    break;
                 default:
                     UGUIWindowLog.LogError($"Change Window Mode to {windowMode} is undefined!");
                     break;
@@ -316,9 +334,11 @@ namespace UGUIWindow
                 return;
             }
 
-            // 창의 크기를 복원할 때 쓸 수 있도록 Window의 이전 상태를 기록한다.
-            _lastWindowState = new UGUIWindowState(this);
-            Debug.Log(_lastWindowState.sizeDelta);
+            // 창 모드 변경
+            _windowMode = UGUIWindowMode.Maximized;
+#if UNITY_EDITOR
+            _prevWindowMode = _windowMode;
+#endif
 
             // 계산 준비
             RectTransform windowTransform = transform as RectTransform;
@@ -340,9 +360,8 @@ namespace UGUIWindow
             HasBorder = false;
             isMovable = false;
 
-            // 마무리 처리
-            _windowMode = UGUIWindowMode.Maximized;
-            OnGetFocus();
+            // 포커스 획득
+            Focus();
         }
 
         public void RestoreWindow()
@@ -353,23 +372,39 @@ namespace UGUIWindow
                 return;
             }
 
+            // 창 모드 변경
+            _windowMode = UGUIWindowMode.Windowed;
+#if UNITY_EDITOR
+            _prevWindowMode = _windowMode;
+#endif
+
             // 윈도우를 이전 상태로 되돌린다.
             _lastWindowState.RestoreWindowFromState(this);
-            _windowMode = UGUIWindowMode.Windowed;
+        }
+
+        public void Minimize()
+        {
+            // 윈도우 최소화
+            _windowMode = UGUIWindowMode.Minimized;
+#if UNITY_EDITOR
+            _prevWindowMode = _windowMode;
+#endif
+
+            // 윈도우가 최소화되었음을 윈도우 매니저에 알림
+            OnMinimizeWindow?.Invoke(this);
+        }
+        #endregion
+
+        #region Window - Etc
+        public void MemorizeLastWindowState()
+        {
+            _lastWindowState = new UGUIWindowState(this);
         }
         #endregion
 
         #region Interface
-        public void OnGetFocus()
-        {
-            // 윈도우가 포커스를 얻었음을 윈도우 매니저에 알림
-            OnFocusWindow?.Invoke(this);
-        }
-
         public void OnPointerDown(PointerEventData eventData)
         {
-            UGUIWindowLog.Log("Pointer Position : " + eventData.position);
-
             // 윈도우가 포커스를 얻었음을 윈도우 매니저에 알림
             OnFocusWindow?.Invoke(this);
         }

@@ -16,7 +16,7 @@ namespace UGUIWindow
         #region Interface
         public void OnPointerDown(PointerEventData eventData)
         {
-            parentWindow.OnGetFocus();
+            parentWindow.Focus();
         }
         #endregion
     }

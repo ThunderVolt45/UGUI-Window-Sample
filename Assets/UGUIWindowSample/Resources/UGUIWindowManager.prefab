@@ -94,6 +94,7 @@ GameObject:
   - component: {fileID: 8922654775922644939}
   - component: {fileID: 5875743020090677813}
   - component: {fileID: 2917278411185820424}
+  - component: {fileID: 3321481760875355298}
   m_Layer: 0
   m_Name: MinimizedWindow
   m_TagString: Untagged
@@ -166,6 +167,18 @@ MonoBehaviour:
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
   m_PresetInfoIsWorld: 0
+--- !u!225 &3321481760875355298
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3052322181596636458}
+  m_Enabled: 1
+  m_Alpha: 0
+  m_Interactable: 0
+  m_BlocksRaycasts: 0
+  m_IgnoreParentGroups: 0
 --- !u!1 &3794148835635393284
 GameObject:
   m_ObjectHideFlags: 0
@@ -317,11 +330,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   defaultWindowPath: Windows/
-  baseCanvas: {fileID: 5116989854169686686}
-  baseCanvasScaler: {fileID: 4188884711273754665}
+  mainCanvasScaler: {fileID: 4188884711273754665}
   defaultWindowOnEscape: {fileID: 8499739566993383437, guid: 5982d1f7b47cb984a8b849da55389920, type: 3}
   minimizedObjectPool: {fileID: 2917278411185820424}
   disabledObjectPool: {fileID: 6756472301620760573}
+  OnDPIChanged:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &3110842646895468515
 MonoBehaviour:
   m_ObjectHideFlags: 0
