@@ -37,7 +37,7 @@ jobs:
           targetPlatform: StandaloneWindows64
       # Step4 - Upload Build File
       - name: Upload Build File
-      - uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v3
         with:
           name: Build-Windows
           path: build
