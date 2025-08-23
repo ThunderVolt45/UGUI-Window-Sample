@@ -28,6 +28,7 @@ jobs:
             Library-
       # Step3 - Unity Build
       - name: Unity Build
+        id: build
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -35,11 +36,40 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: StandaloneWindows64
-      # Step4 - Upload Build File
-      - name: Upload Build File
+          # 빌드 결과물 이름을 프로젝트 이름으로 설정
+          buildName: ${{ github.event.repository.name }}
+      # Step4 - Upload Build File Artifact
+      - name: Upload Build File Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Build-Windows
           path: build
+      # Step5 - Compress Build Result
+      - name: Zip build artifact
+        run: |
+          zip -r ${{ steps.build.outputs.buildPath }}/${{ github.event.repository.name }}.zip ${{ steps.build.outputs.buildPath }}/*
+      # Step6 - Create Github Release
+      - name: Create a GitHub release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Automatically generated releases ${{ github.ref }}
+          body:  |
+            Automated release for version ${{ github.ref }}.
+          draft: false
+          prerelease: false
+      # Step7 - Upload Build file to Release
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ steps.build.outputs.buildPath }}/${{ github.event.repository.name }}.zip
+          asset_name: ${{ github.event.repository.name }}-${{ github.ref }}-Windows64.zip
+          asset_content_type: application/zip
 
 #  참고: https://dev-junwoo.tistory.com/149 [개발초보 JW의 성장일기:티스토리]
