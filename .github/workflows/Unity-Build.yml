@@ -78,8 +78,6 @@ jobs:
             Automated release created by Github Actions.
           draft: false
           prerelease: false
-          files:  |
-            ${{ steps.artifact.outputs.download-path }}/Build-Windows.zip
       # Step4 - Upload Build file to Release
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
@@ -87,6 +85,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.artifact.outputs.download-path }}.Build-Windows.zip
+          asset_path: ${{ steps.artifact.outputs.download-path }}/Build-Windows.zip
           asset_name: ${{ github.event.repository.name }}-${{ github.ref }}-Windows64.zip
           asset_content_type: application/zip
