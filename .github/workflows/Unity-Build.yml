@@ -45,6 +45,12 @@ jobs:
         with:
           name: Build-Windows
           path: build
+      # Step5 - Bump version and push tag
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
       # Step5 - Create Github Release
       - name: Create a GitHub release
         id: create_release
@@ -52,10 +58,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Automatically generated releases ${{ github.ref }}
+          tag_name: ${{ steps.tag_version.outputs.new_tag }}
+          release_name: Automatically Generated Release ${{ steps.tag_version.outputs.new_tag }}
           body:  |
-            Automated release for version ${{ github.ref }}.
+            ${{ steps.tag_version.outputs.changelog }}
+            
+            Automated release created by Github Actions.
           draft: false
           prerelease: false
       # Step6 - Upload Build file to Release
