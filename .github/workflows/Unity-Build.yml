@@ -77,4 +77,5 @@ jobs:
             Automated release created by Github Actions.
           draft: false
           prerelease: false
-          files: ${{ steps.artifact.outputs.download-path }}/Build-Windows.zip
+          files:  |
+            ${{ steps.artifact.outputs.download-path }}/Build-Windows.zip
