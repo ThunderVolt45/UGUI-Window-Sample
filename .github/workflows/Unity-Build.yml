@@ -59,13 +59,17 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           artifacts-ids: ${{ env.ARTIFACTS }}
-      # Step2 - Bump version and push tag
+          path: artifacts/
+      # Step2 - Check File Structure
+      - name: Display structure of downloaded files
+        run: ls -R artifacts/
+      # Step3 - Bump version and push tag
       - name: Bump version and push tag
         id: tag_version
         uses: mathieudutour/github-tag-action@v6.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-      # Step3 - Create Release
+      # Step4 - Create Release
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v2
@@ -78,13 +82,13 @@ jobs:
             Automated release created by Github Actions.
           draft: false
           prerelease: false
-      # Step4 - Upload Build file to Release
+      # Step5 - Upload Build file to Release
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.artifact.outputs.download-path }}/Build-Windows.zip
+          asset_path: artifacts/Build-Windows.zip
           asset_name: ${{ github.event.repository.name }}-${{ github.ref }}-Windows64.zip
           asset_content_type: application/zip
