@@ -12,6 +12,7 @@ namespace UGUIWindow
     {
         [Header("UI Elements")]
         [SerializeField] private Image imageIcon;
+        [SerializeField] private Image imageBackground;
         [SerializeField] private TMP_Text textIcon;
         
         [Header("Icon Settings")]
@@ -23,19 +24,19 @@ namespace UGUIWindow
 
         [Header("Event Listener")]
         [Space(5f)]
-        public UnityEvent OnDoubleClick;
+        public UnityEvent OnDoubleClickIcon;
 
         private float lastClickTime = -1f; // 마지막 클릭 시간을 기록하는 변수 (-1로 초기화)
 
         #region Initialize
         private void Start()
         {
-            OnDoubleClick.AddListener(OnDoubleClickIcon);
+            OnDoubleClickIcon.AddListener(OpenWindow);
         }
         #endregion
 
-        #region Event
-        private void OnDoubleClickIcon()
+        #region Functions
+        private void OpenWindow()
         {
             Type targetWindowType = Type.GetType($"UGUIWindow.{targetClassName}", true);
             UGUIWindowManager.CreateWindow(targetWindowType);
@@ -43,10 +44,25 @@ namespace UGUIWindow
         #endregion
 
         #region Event Listener
+        public void Focus()
+        {
+            imageBackground.enabled = true;
+
+            var desktop = GetComponentInParent<UGUIDesktop>();
+            desktop.OnIconClicked?.Invoke(this);
+        }
+
+        public void Divert()
+        {
+            imageBackground.enabled = false;
+        }
+
         public void OnPointerClick(PointerEventData eventData)
         {
-            UGUIWindowLog.Log("Click!");
+            // 포커스를 획득합니다.
+            Focus();
 
+            UGUIWindowLog.Log("Click!");
             float currentTime = Time.time;
 
             // 마지막 클릭 후 doubleClickThreshold 안에 다시 클릭했는지 확인
@@ -55,10 +71,13 @@ namespace UGUIWindow
                 UGUIWindowLog.Log("Double Click!");
 
                 // 연결된 이벤트들을 모두 호출합니다.
-                OnDoubleClick?.Invoke();
+                OnDoubleClickIcon?.Invoke();
 
                 // 마지막 클릭 시간을 초기화하여 세 번째 클릭이 또 더블클릭으로 인식되는 것을 방지합니다.
                 lastClickTime = -1f;
+
+                // 포커스를 해제합니다.
+                Divert();
             }
             else
             {
