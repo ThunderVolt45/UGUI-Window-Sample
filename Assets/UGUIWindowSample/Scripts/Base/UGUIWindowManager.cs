@@ -109,9 +109,6 @@ namespace UGUIWindow
                 Destroy(gameObject);
             }
             
-            // 캔버스 초기화
-            InitializeCanvas();
-
             // 자료구조 초기화
             currentlyOpenedWindows = new DoublyLinkedList<UGUIWindow>();
             windowPool = new Dictionary<string, UGUIWindow>();
@@ -123,22 +120,24 @@ namespace UGUIWindow
             DontDestroyOnLoad(gameObject);
         }
 
-        private void InitializeCanvas()
+        private void Start()
         {
-            var referenceResolution = mainCanvasScaler.referenceResolution;
-            var currentResolution = Screen.currentResolution;
+            // 캔버스 초기화
+            InitializeCanvas();
 
-            _screenMultiplierWidth = referenceResolution.x / (float)currentResolution.width;
-            _screenMultiplierHeight = referenceResolution.y / (float)currentResolution.height;
-        }
-
-        // Start is called once before the first execution of Update after the MonoBehaviour is created
-        void Start()
-        {
+            // 윈도우 생성
             CreateWindow<UGUIWindow>();
             CreateWindowEx<UGUIWindowMultipleInstanceSample>(null, -200, 0, 250, 250);
             CreateWindowEx<UGUIWindowMultipleInstanceSample>("MultipleInstanceSample", -150, 50, 250, 250);
             CreateWindowEx<UGUIWindowMultipleInstanceSample>("MultipleInstanceSample", -100, 100, 250, 250);
+        }
+
+        private void InitializeCanvas()
+        {
+            var currentResolution = Screen.currentResolution;
+            var dpi = PlayerPrefs.GetFloat("DPI Settings", 2f);
+
+            SetDPI(currentResolution.width, currentResolution.height, dpi);
         }
         #endregion
 
@@ -151,7 +150,11 @@ namespace UGUIWindow
         /// <param name="dpi">목표 DPI % (1f = 100%)</param>
         public static void SetDPI(int screenWidth, int screenHeight, float dpi)
         {
+            // 화면 해상도와 DPI 값에 맞춰 캔버스의 설정을 변경한다.
             Instance.ChangeCanvasResolution(screenWidth, screenHeight, dpi);
+
+            // PlayerPrefs에 DPI 값을 기록한다.
+            PlayerPrefs.SetFloat("DPI Settings", dpi);
         }
 
         private void ChangeCanvasResolution(int screenWidth, int screenHeight, float dpi)

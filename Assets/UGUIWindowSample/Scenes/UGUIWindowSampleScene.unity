@@ -119,6 +119,17 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!114 &126709990 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8165769937288698511, guid: d2f06a7433329fc4982a36e3a0209c50, type: 3}
+  m_PrefabInstance: {fileID: 3816019266344298141}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39903badb416e35468f11111f947fb5a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &180159229
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -725,6 +736,30 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3592617366551086900, guid: 2da6e74501ea0354f9669a149a8c5ca1, type: 3}
+      propertyPath: OnDPIChanged.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3592617366551086900, guid: 2da6e74501ea0354f9669a149a8c5ca1, type: 3}
+      propertyPath: OnDPIChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 126709990}
+    - target: {fileID: 3592617366551086900, guid: 2da6e74501ea0354f9669a149a8c5ca1, type: 3}
+      propertyPath: OnDPIChanged.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3592617366551086900, guid: 2da6e74501ea0354f9669a149a8c5ca1, type: 3}
+      propertyPath: OnDPIChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: OnDPIChange
+      objectReference: {fileID: 0}
+    - target: {fileID: 3592617366551086900, guid: 2da6e74501ea0354f9669a149a8c5ca1, type: 3}
+      propertyPath: OnDPIChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: UGUIWindow.UGUIDesktop, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 3592617366551086900, guid: 2da6e74501ea0354f9669a149a8c5ca1, type: 3}
+      propertyPath: OnDPIChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
     - target: {fileID: 5787970526414306312, guid: 2da6e74501ea0354f9669a149a8c5ca1, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

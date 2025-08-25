@@ -18,13 +18,14 @@ namespace UGUIWindow
         private CanvasScaler canvasScaler;
 
         #region Initialize
-        private void Start()
+        private void Awake()
         {
             canvasScaler = GetComponent<CanvasScaler>();
-            UGUIWindowManager.Instance.OnDPIChanged.AddListener(OnDPIChange);
+        }
 
+        private void Start()
+        {
             FindIconInTransformRecursion(transform);
-
             OnIconClicked.AddListener(DivertOtherIcon);
         }
 
@@ -55,7 +56,7 @@ namespace UGUIWindow
             }
         }
 
-        private void OnDPIChange(int screenWidth, int screenHeight, float dpi)
+        public void OnDPIChange(int screenWidth, int screenHeight, float dpi)
         {
             canvasScaler.referenceResolution =
                 new Vector2(screenWidth / dpi, screenHeight / dpi);
