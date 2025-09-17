@@ -290,6 +290,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5787970526414306312}
   - component: {fileID: 3592617366551086900}
+  - component: {fileID: 1763255437106800547}
   - component: {fileID: 3110842646895468515}
   - component: {fileID: 1383225134348904252}
   m_Layer: 0
@@ -337,6 +338,28 @@ MonoBehaviour:
   OnDPIChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1763255437106800547
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7307416461942042429}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42f93170698f33b478f6defa1657915b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  defaultCursor: {fileID: 2800000, guid: 097f88f9b83154144a9cd249c36bcd91, type: 3}
+  defaultCursorHotspot: {x: 0, y: 0}
+  resizeHorizontalCursor: {fileID: 2800000, guid: da8777f7c1ecbdb4fabd266e2c627728, type: 3}
+  resizeHorizontalCursorHotspot: {x: 48, y: 24}
+  resizeVerticalCursor: {fileID: 2800000, guid: 670bb398c7f7a494b8a371090953add0, type: 3}
+  resizeVerticalCursorHotspot: {x: 24, y: 48}
+  resizeDiagonalNeSwCursor: {fileID: 2800000, guid: 7f201a267fac0a24a9254f4c9befc3ce, type: 3}
+  resizeDiagonalNeSwCursorHotspot: {x: 32, y: 32}
+  resizeDiagonalNwSeCursor: {fileID: 2800000, guid: 661b4921954caf44da8f055d720d706e, type: 3}
+  resizeDiagonalNwSeCursorHotspot: {x: 32, y: 32}
 --- !u!114 &3110842646895468515
 MonoBehaviour:
   m_ObjectHideFlags: 0
