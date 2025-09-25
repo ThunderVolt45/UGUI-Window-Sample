@@ -43,8 +43,10 @@ namespace UGUIWindow
             InitalizeButton();
         }
 
-        private void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
+            
             DetectCurrentSettings();
         }
 

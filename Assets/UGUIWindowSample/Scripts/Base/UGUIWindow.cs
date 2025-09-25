@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
@@ -15,6 +16,7 @@ namespace UGUIWindow
     }
 
     [RequireComponent(typeof(Image))]
+    [RequireComponent(typeof(CanvasGroup))]
     public class UGUIWindow : MonoBehaviour, IPointerDownHandler
     {
         #region Inspector Fields
@@ -76,7 +78,7 @@ namespace UGUIWindow
         public UnityEvent<UGUIWindow> OnMinimizeWindow;
         #endregion
 
-        #region properties
+        #region Properties
         public UGUIWindowMode WindowMode
         {
             get { return _windowMode; }
@@ -148,7 +150,6 @@ namespace UGUIWindow
         #endregion
 
         #region Variables
-        // UGUIWindowManager의 인스턴스
         private UGUIWindowManager windowManager;
 
 #if UNITY_EDITOR
@@ -160,7 +161,12 @@ namespace UGUIWindow
 #endif
 
         // 윈도우의 이전 상태를 기록하는 클래스
-        [SerializeField] private UGUIWindowState _lastWindowState;
+        [SerializeField] private UGUIWindowState _lastWindowState; 
+        #endregion
+
+        #region Components
+        protected Image image;
+        protected CanvasGroup canvasGroup;
         #endregion
 
         #region Initialize
@@ -169,7 +175,11 @@ namespace UGUIWindow
             // 윈도우 매니저의 인스턴스를 가져옴
             windowManager = UGUIWindowManager.Instance;
 
-            // 윈도우의 각 컴포넌트를 초기화
+            // 컴포넌트 초기화
+            image = GetComponent<Image>();
+            canvasGroup = GetComponent<CanvasGroup>();
+
+            // 윈도우 구성 요소를 초기화
             SetWindowHeader(_hasHeader);
             SetWindowBorder(_hasBorder);
             SetWindowExitButton(_hasExitButton);
@@ -189,6 +199,13 @@ namespace UGUIWindow
         protected virtual void Start()
         {
 
+        }
+        #endregion
+
+        #region Unity Event
+        protected virtual void OnEnable()
+        {
+            FadeWindow(0f, 1f, 0.9f, 1f);
         }
         #endregion
 
@@ -229,7 +246,35 @@ namespace UGUIWindow
 #endif
         #endregion
 
-        #region Window - Setting
+        #region Window - Animation
+        private async Awaitable FadeWindow(float startAlpha, float targetAlpha, float startScale, float targetScale, float fadeDuration = 0.15f)
+        {
+            float elapsedTime = 0f;
+
+            // 지정된 시간이 지날 때까지 반복합니다.
+            while (elapsedTime < fadeDuration)
+            {
+                // 다음 프레임까지 기다립니다.
+                await Awaitable.NextFrameAsync();
+
+                elapsedTime += Time.deltaTime;
+
+                // 시간에 따라 Alpha, Scale 값을 선형 보간합니다.
+                float newAlpha = Mathf.Lerp(startAlpha, targetAlpha, elapsedTime / fadeDuration);
+                float newScale = Mathf.Lerp(startScale, targetScale, elapsedTime / fadeDuration);
+
+                // Window의 Alpha, Scale 값을 업데이트 합니다.
+                canvasGroup.alpha = newAlpha;
+                transform.localScale = new Vector3(newScale, newScale, newScale);
+            }
+
+            // 정확한 최종 값으로 설정합니다.
+            canvasGroup.alpha = targetAlpha;
+            transform.localScale = new Vector3(targetScale, targetScale, targetScale);
+        }
+        #endregion
+
+        #region Window - Setter
         public void SetWindowTitle(string title)
         {
             if (windowHeader != null)
@@ -285,12 +330,14 @@ namespace UGUIWindow
             OnOpenWindow?.Invoke(this);
         }
 
-        public void Close()
+        public async void Close()
         {
-            gameObject.SetActive(false);
-
             // 윈도우가 닫혔음을 윈도우 매니저에 알림
             OnCloseWindow?.Invoke(this);
+
+            // 윈도우를 실제로 닫음
+            await FadeWindow(1f, 0f, 1f, 0.9f);
+            gameObject.SetActive(false);
 
             // 오브젝트 풀링 기능을 사용하지 않는다면 자폭
             if (allowMultipleInstance || !useObjectPooling)

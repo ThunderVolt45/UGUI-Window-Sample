@@ -13,5 +13,10 @@ namespace UGUIWindow
         {
             base.Start();
         }
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+        }
     }
 }

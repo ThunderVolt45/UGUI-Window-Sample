@@ -135,8 +135,6 @@ namespace UGUIWindow
         #region InputSystem
         private void OnPoint(InputValue input)
         {
-            Debug.Log(input);
-
             var pointedObject = GetObjectUnderCursor(input.Get<Vector2>());
 
             if (pointedObject == null)

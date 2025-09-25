@@ -146,6 +146,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8565156740118482739}
   - component: {fileID: 1986267266500050741}
+  - component: {fileID: 7414431850946542240}
   - component: {fileID: 4222950804900894869}
   - component: {fileID: -1181352811182607728}
   m_Layer: 0
@@ -186,6 +187,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2047303880260269141}
   m_CullTransparentMesh: 1
+--- !u!225 &7414431850946542240
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2047303880260269141}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!114 &4222950804900894869
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -254,12 +267,27 @@ MonoBehaviour:
   isMovable: 1
   isResizable: 1
   minimumWindowSize: {x: 100, y: 100}
-  OnFocusWindow:
+  OnOpenWindow:
     m_PersistentCalls:
       m_Calls: []
   OnCloseWindow:
     m_PersistentCalls:
       m_Calls: []
+  OnFocusWindow:
+    m_PersistentCalls:
+      m_Calls: []
+  OnMinimizeWindow:
+    m_PersistentCalls:
+      m_Calls: []
+  _lastWindowState:
+    anchorMin: {x: 0, y: 0}
+    anchorMax: {x: 0, y: 0}
+    anchoredPosition: {x: 0, y: 0}
+    sizeDelta: {x: 0, y: 0}
+    hasHeader: 0
+    hasBorder: 0
+    isMovable: 0
+    isResizable: 0
 --- !u!1 &8501604077193396176
 GameObject:
   m_ObjectHideFlags: 0
