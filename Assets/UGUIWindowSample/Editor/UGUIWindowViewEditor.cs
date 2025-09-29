@@ -4,8 +4,8 @@ using UnityEditor;
 
 namespace UGUIWindow
 {
-    [CustomEditor(typeof(UGUIWindow), true)]
-    public class UGUIWindowEditor : Editor
+    [CustomEditor(typeof(UGUIWindowView), true)]
+    public class UGUIWindowViewEditor : Editor
     {
         private List<UGUIWindowBorder> _tempBorderList;
         private List<UGUIWindowEdge> _tempEdgeList;
@@ -15,7 +15,7 @@ namespace UGUIWindow
             base.OnInspectorGUI();
 
             GUILayout.Space(10f);
-            UGUIWindow window = (UGUIWindow)target;
+            UGUIWindowView window = (UGUIWindowView)target;
 
             // 오브젝트 내의 윈도우 컴포넌트를 찾는 버튼
             if (GUILayout.Button("Auto find Base Components"))
@@ -41,7 +41,7 @@ namespace UGUIWindow
         /// </summary>
         public void AutoFindHeader()
         {
-            UGUIWindow window = (UGUIWindow)target;
+            UGUIWindowView window = (UGUIWindowView)target;
             serializedObject.FindProperty("windowHeader").objectReferenceValue = null;
             serializedObject.ApplyModifiedProperties();
 
@@ -52,7 +52,7 @@ namespace UGUIWindow
         {
             if (transform.TryGetComponent(out UGUIWindowHeader header))
             {
-                UGUIWindow window = (UGUIWindow)target;
+                UGUIWindowView window = (UGUIWindowView)target;
                 serializedObject.FindProperty("windowHeader").objectReferenceValue = header;
                 serializedObject.ApplyModifiedProperties();
 
@@ -71,7 +71,7 @@ namespace UGUIWindow
         /// </summary>
         public void AutoFindBorder()
         {
-            UGUIWindow window = (UGUIWindow)target;
+            UGUIWindowView window = (UGUIWindowView)target;
             _tempBorderList = new List<UGUIWindowBorder>();
 
             FindBorderInTransformRecursion(window.transform);
@@ -98,7 +98,7 @@ namespace UGUIWindow
         /// </summary>
         public void AutoFindEdge()
         {
-            UGUIWindow window = (UGUIWindow)target;
+            UGUIWindowView window = (UGUIWindowView)target;
             _tempEdgeList = new List<UGUIWindowEdge>();
 
             FindEdgeInTransformRecursion(window.transform);

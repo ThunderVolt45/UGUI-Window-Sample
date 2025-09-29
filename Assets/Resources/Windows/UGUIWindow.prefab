@@ -12,7 +12,8 @@ GameObject:
   - component: {fileID: 1986267266500050741}
   - component: {fileID: 2625537118686138954}
   - component: {fileID: 4222950804900894869}
-  - component: {fileID: 1766263222637646392}
+  - component: {fileID: 4827184174350680851}
+  - component: {fileID: 8490153895677333877}
   m_Layer: 0
   m_Name: UGUIWindow
   m_TagString: Untagged
@@ -93,7 +94,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &1766263222637646392
+--- !u!114 &4827184174350680851
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -102,10 +103,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 2047303880260269141}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe88034269c62ec49b60189c160c6ffc, type: 3}
+  m_Script: {fileID: 11500000, guid: c7bace6f0599ba6419e3e17f1209ea8a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _windowMode: 0
   windowHeader: {fileID: 7831239607570330441}
   windowBorders:
   - {fileID: 7992742308549904391}
@@ -122,6 +122,19 @@ MonoBehaviour:
   - {fileID: 5417477784602811299}
   - {fileID: 25116824208099291}
   - {fileID: 7780664733411255504}
+--- !u!114 &8490153895677333877
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2047303880260269141}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe88034269c62ec49b60189c160c6ffc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _windowMode: 0
   allowMultipleInstance: 0
   useObjectPooling: 1
   _hasHeader: 1
@@ -143,15 +156,6 @@ MonoBehaviour:
   OnMinimizeWindow:
     m_PersistentCalls:
       m_Calls: []
-  _lastWindowState:
-    anchorMin: {x: 0, y: 0}
-    anchorMax: {x: 0, y: 0}
-    anchoredPosition: {x: 0, y: 0}
-    sizeDelta: {x: 0, y: 0}
-    hasHeader: 0
-    hasBorder: 0
-    isMovable: 0
-    isResizable: 0
 --- !u!1 &4781913868212298891
 GameObject:
   m_ObjectHideFlags: 0
@@ -380,7 +384,27 @@ PrefabInstance:
       propertyPath: m_overflowMode
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 1563865070264925497, guid: 7f5b30acbd0eb06479c72263c5691577, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1783498052935912979, guid: 7f5b30acbd0eb06479c72263c5691577, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2419745762867701888, guid: 7f5b30acbd0eb06479c72263c5691577, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4449017671718925491, guid: 7f5b30acbd0eb06479c72263c5691577, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5584801194293997611, guid: 7f5b30acbd0eb06479c72263c5691577, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6989790750496072140, guid: 7f5b30acbd0eb06479c72263c5691577, type: 3}
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
@@ -455,6 +479,10 @@ PrefabInstance:
     - target: {fileID: 9086601954642182330, guid: 7f5b30acbd0eb06479c72263c5691577, type: 3}
       propertyPath: m_Name
       value: Header
+      objectReference: {fileID: 0}
+    - target: {fileID: 9086601954642182330, guid: 7f5b30acbd0eb06479c72263c5691577, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -540,9 +568,25 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 8565156740118482739}
     m_Modifications:
+    - target: {fileID: 1793496778192565845, guid: 4858a775509a4dc4fae28bf78ee34f1a, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2824884922389780811, guid: 4858a775509a4dc4fae28bf78ee34f1a, type: 3}
       propertyPath: m_Name
       value: Borders
+      objectReference: {fileID: 0}
+    - target: {fileID: 3535914198899653081, guid: 4858a775509a4dc4fae28bf78ee34f1a, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4802608647635628457, guid: 4858a775509a4dc4fae28bf78ee34f1a, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7984861001427713620, guid: 4858a775509a4dc4fae28bf78ee34f1a, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8845711769389814419, guid: 4858a775509a4dc4fae28bf78ee34f1a, type: 3}
       propertyPath: m_Pivot.x
@@ -686,6 +730,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 8565156740118482739}
     m_Modifications:
+    - target: {fileID: 1690563891577812046, guid: ac2ce88d16f282946af47e98f4795e76, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2798472086007799753, guid: ac2ce88d16f282946af47e98f4795e76, type: 3}
       propertyPath: m_Name
       value: Edges
@@ -769,6 +817,18 @@ PrefabInstance:
     - target: {fileID: 3469506907835528926, guid: ac2ce88d16f282946af47e98f4795e76, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3920307723122838230, guid: ac2ce88d16f282946af47e98f4795e76, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4543192031957018131, guid: ac2ce88d16f282946af47e98f4795e76, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6403747814931968398, guid: ac2ce88d16f282946af47e98f4795e76, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

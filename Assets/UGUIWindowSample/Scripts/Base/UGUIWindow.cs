@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
 namespace UGUIWindow
 {
@@ -15,18 +14,12 @@ namespace UGUIWindow
         Minimized
     }
 
-    [RequireComponent(typeof(Image))]
-    [RequireComponent(typeof(CanvasGroup))]
+    [RequireComponent(typeof(UGUIWindowView))]
     public class UGUIWindow : MonoBehaviour, IPointerDownHandler
     {
         #region Inspector Fields
         [Header("Window Mode")]
         [SerializeField] private UGUIWindowMode _windowMode = UGUIWindowMode.Windowed;
-
-        [Header("Base Components")]
-        public UGUIWindowHeader windowHeader;
-        public List<UGUIWindowBorder> windowBorders;
-        public List<UGUIWindowEdge> windowEdges;
 
         [Header("Base Settings")]
         [Space(3f)]
@@ -48,17 +41,11 @@ namespace UGUIWindow
         [Tooltip("윈도우가 최대화/복원 버튼을 갖나요? 헤더가 존재하고 크기를 조절할 수 있는 경우에만 활성화됩니다.")]
         [SerializeField] private bool _hasMaximizeButton = false;
 
-        // [Tooltip("윈도우가 최소화 버튼을 갖나요? 헤더가 존재하는 경우에만 활성화됩니다.")]
-        // public bool hasMinimizeButton = false;
-
         [Tooltip("윈도우를 움직일 수 있나요?")]
         public bool isMovable = false;
 
         [Tooltip("윈도우의 크기를 조절할 수 있나요?")]
         public bool isResizable = false;
-
-        // [Tooltip("윈도우의 경계 크기")]
-        // public float borderSize = 4f;
 
         [Tooltip("윈도우가 가져야 할 최소 크기")]
         public Vector2 minimumWindowSize = new Vector2(100, 100);
@@ -84,9 +71,8 @@ namespace UGUIWindow
             get { return _windowMode; }
             set
             {
-                if (_windowMode != value) // 값이 진짜로 바뀌었는 지 확인
+                if (_windowMode != value)
                 {
-                    // 상태 변경, 값은 반드시 ChangeWindowMode()를 통해서만 변경되어야 한다.
                     ChangeWindowMode(value);
                 }
             }
@@ -97,11 +83,10 @@ namespace UGUIWindow
             get { return _hasHeader; }
             set
             {
-                if (_hasHeader != value) // 값이 진짜로 바뀌었는 지 확인
+                if (_hasHeader != value)
                 {
-                    // 헤더 상태 변경
                     _hasHeader = value;
-                    SetWindowHeader(_hasHeader);
+                    view.SetHeaderActive(_hasHeader);
                 }
             }
         }
@@ -111,11 +96,10 @@ namespace UGUIWindow
             get { return _hasBorder; }
             set
             {
-                if (_hasBorder != value) // 값이 진짜로 바뀌었는 지 확인
+                if (_hasBorder != value)
                 {
-                    // 경계 상태 변경
                     _hasBorder = value;
-                    SetWindowBorder(_hasBorder);
+                    view.SetBorderActive(_hasBorder);
                 }
             }
         }
@@ -125,11 +109,10 @@ namespace UGUIWindow
             get { return _hasExitButton; }
             set
             {
-                if (_hasExitButton != value) // 값이 진짜로 바뀌었는 지 확인
+                if (_hasExitButton != value)
                 {
-                    // 버튼 상태 변경
                     _hasExitButton = value;
-                    SetWindowExitButton(_hasExitButton);
+                    view.SetExitButtonActive(_hasExitButton);
                 }
             }
         }
@@ -139,18 +122,20 @@ namespace UGUIWindow
             get { return _hasMaximizeButton; }
             set
             {
-                if (_hasMaximizeButton != value) // 값이 진짜로 바뀌었는 지 확인
+                if (_hasMaximizeButton != value)
                 {
-                    // 버튼 상태 변경
                     _hasMaximizeButton = value;
-                    SetWindowMaximizeButton(_hasMaximizeButton);
+                    view.SetMaximizeButtonActive(_hasMaximizeButton);
                 }
             }
         }
+        
+        public RectTransform RectTransform { get { return view.RectTransform; } }
         #endregion
 
         #region Variables
         private UGUIWindowManager windowManager;
+        private UGUIWindowView view;
 
 #if UNITY_EDITOR
         private UGUIWindowMode _prevWindowMode;
@@ -160,31 +145,20 @@ namespace UGUIWindow
         private bool _prevHasMaximizeButtonState;
 #endif
 
-        // 윈도우의 이전 상태를 기록하는 클래스
-        [SerializeField] private UGUIWindowState _lastWindowState; 
-        #endregion
-
-        #region Components
-        protected Image image;
-        protected CanvasGroup canvasGroup;
+        private UGUIWindowState _lastWindowState;
         #endregion
 
         #region Initialize
         protected virtual void Awake()
         {
-            // 윈도우 매니저의 인스턴스를 가져옴
             windowManager = UGUIWindowManager.Instance;
+            view = GetComponent<UGUIWindowView>();
 
-            // 컴포넌트 초기화
-            image = GetComponent<Image>();
-            canvasGroup = GetComponent<CanvasGroup>();
+            view.SetHeaderActive(_hasHeader);
+            view.SetBorderActive(_hasBorder);
+            view.SetExitButtonActive(_hasExitButton);
+            view.SetMaximizeButtonActive(_hasMaximizeButton);
 
-            // 윈도우 구성 요소를 초기화
-            SetWindowHeader(_hasHeader);
-            SetWindowBorder(_hasBorder);
-            SetWindowExitButton(_hasExitButton);
-
-            // 현재 윈도우의 상태를 기록함
             _lastWindowState = new UGUIWindowState(this);
 #if UNITY_EDITOR
             _prevWindowMode = _windowMode;
@@ -195,17 +169,9 @@ namespace UGUIWindow
 #endif
         }
 
-        // Start is called once before the first execution of Update after the MonoBehaviour is created
-        protected virtual void Start()
-        {
-
-        }
-        #endregion
-
-        #region Unity Event
         protected virtual void OnEnable()
         {
-            FadeWindow(0f, 1f, 0.9f, 1f);
+            view.Fade(0f, 1f, 0.9f, 1f);
         }
         #endregion
 
@@ -213,27 +179,32 @@ namespace UGUIWindow
 #if UNITY_EDITOR
         private void OnValidate()
         {
+            if (view == null)
+            {
+                view = GetComponent<UGUIWindowView>();
+            }
+
             if (_hasHeader != _prevHasHeaderState)
             {
-                SetWindowHeader(_hasHeader);
+                view.SetHeaderActive(_hasHeader);
                 _prevHasHeaderState = _hasHeader;
             }
 
             if (_hasBorder != _prevHasBorderState)
             {
-                SetWindowBorder(_hasBorder);
+                view.SetBorderActive(_hasBorder);
                 _prevHasBorderState = _hasBorder;
             }
 
             if (_hasExitButton != _prevHasExitButtonState)
             {
-                SetWindowExitButton(_hasExitButton);
+                view.SetExitButtonActive(_hasExitButton);
                 _prevHasExitButtonState = _hasExitButton;
             }
 
             if (_hasMaximizeButton != _prevHasMaximizeButtonState)
             {
-                SetWindowMaximizeButton(_hasMaximizeButton);
+                view.SetMaximizeButtonActive(_hasMaximizeButton);
                 _prevHasMaximizeButtonState = _hasMaximizeButton;
             }
 
@@ -246,100 +217,27 @@ namespace UGUIWindow
 #endif
         #endregion
 
-        #region Window - Animation
-        private async Awaitable FadeWindow(float startAlpha, float targetAlpha, float startScale, float targetScale, float fadeDuration = 0.15f)
-        {
-            float elapsedTime = 0f;
-
-            // 지정된 시간이 지날 때까지 반복합니다.
-            while (elapsedTime < fadeDuration)
-            {
-                // 다음 프레임까지 기다립니다.
-                await Awaitable.NextFrameAsync();
-
-                elapsedTime += Time.deltaTime;
-
-                // 시간에 따라 Alpha, Scale 값을 선형 보간합니다.
-                float newAlpha = Mathf.Lerp(startAlpha, targetAlpha, elapsedTime / fadeDuration);
-                float newScale = Mathf.Lerp(startScale, targetScale, elapsedTime / fadeDuration);
-
-                // Window의 Alpha, Scale 값을 업데이트 합니다.
-                canvasGroup.alpha = newAlpha;
-                transform.localScale = new Vector3(newScale, newScale, newScale);
-            }
-
-            // 정확한 최종 값으로 설정합니다.
-            canvasGroup.alpha = targetAlpha;
-            transform.localScale = new Vector3(targetScale, targetScale, targetScale);
-        }
-        #endregion
-
         #region Window - Setter
         public void SetWindowTitle(string title)
         {
-            if (windowHeader != null)
-            {
-                windowHeader.SetTitle(title);
-            }
-        }
-
-        private void SetWindowExitButton(bool hasExitButton)
-        {
-            if (windowHeader != null)
-            {
-                windowHeader.SetExitButtonActive(hasExitButton);
-            }
-        }
-
-        private void SetWindowMaximizeButton(bool hasMaximizeButton)
-        {
-            if (windowHeader != null)
-            {
-                windowHeader.SetMaximizeButtonActive(hasMaximizeButton);
-            }
-        }
-
-        private void SetWindowHeader(bool hasHeader)
-        {
-            if (windowHeader != null)
-            {
-                windowHeader.gameObject.SetActive(hasHeader);
-            }
-        }
-
-        private void SetWindowBorder(bool hasBorder)
-        {
-            foreach (var border in windowBorders)
-            {
-                border.gameObject.SetActive(hasBorder);
-            }
-
-            foreach (var edge in windowEdges)
-            {
-                edge.gameObject.SetActive(hasBorder);
-            }
+            view.SetTitle(title);
         }
         #endregion
 
         #region Window - Control
         public void Open()
         {
-            gameObject.SetActive(true);
-
-            // 윈도우가 열렸음을 윈도우 매니저에 알림
+            view.SetActive(true);
             OnOpenWindow?.Invoke(this);
         }
 
         public async void Close()
         {
-            // 윈도우가 닫혔음을 윈도우 매니저에 알림
             OnCloseWindow?.Invoke(this);
 
-            // 윈도우를 실제로 닫음
-            await FadeWindow(1f, 0f, 1f, 0.9f);
-            gameObject.SetActive(false);
+            await view.Fade(1f, 0f, 1f, 0.9f);
+            view.SetActive(false);
 
-            // 오브젝트 풀링 기능을 사용하지 않는다면 자폭
             if (allowMultipleInstance || !useObjectPooling)
             {
                 Destroy(gameObject);
@@ -348,7 +246,6 @@ namespace UGUIWindow
 
         public void Focus()
         {
-            // 윈도우가 포커스를 얻었음을 윈도우 매니저에 알림
             OnFocusWindow?.Invoke(this);
         }
 
@@ -381,33 +278,23 @@ namespace UGUIWindow
                 return;
             }
 
-            // 창 모드 변경
             _windowMode = UGUIWindowMode.Maximized;
 #if UNITY_EDITOR
             _prevWindowMode = _windowMode;
 #endif
 
-            // 계산 준비
-            RectTransform windowTransform = transform as RectTransform;
             float headerHeight = 0f;
-
-            if (windowHeader != null)
+            if (view.windowHeader != null)
             {
-                RectTransform headerTransform = windowHeader.transform as RectTransform;
+                RectTransform headerTransform = view.windowHeader.transform as RectTransform;
                 headerHeight = headerTransform.anchoredPosition.y;
             }
 
-            // Window의 크기를 최대화한다.
-            windowTransform.anchorMin = Vector2.zero;
-            windowTransform.anchorMax = Vector2.one;
-            windowTransform.anchoredPosition = new Vector2(0, -headerHeight / 2);
-            windowTransform.sizeDelta = new Vector2(0, -headerHeight);
+            view.ApplyMaximizedState(headerHeight);
 
-            // 경계를 없애고 움직일 수 없게 고정한다.
             HasBorder = false;
             isMovable = false;
 
-            // 포커스 획득
             Focus();
         }
 
@@ -419,25 +306,20 @@ namespace UGUIWindow
                 return;
             }
 
-            // 창 모드 변경
             _windowMode = UGUIWindowMode.Windowed;
 #if UNITY_EDITOR
             _prevWindowMode = _windowMode;
 #endif
 
-            // 윈도우를 이전 상태로 되돌린다.
-            _lastWindowState.RestoreWindowFromState(this);
+            view.ApplyRestoredState(_lastWindowState);
         }
 
         public void Minimize()
         {
-            // 윈도우 최소화
             _windowMode = UGUIWindowMode.Minimized;
 #if UNITY_EDITOR
             _prevWindowMode = _windowMode;
 #endif
-
-            // 윈도우가 최소화되었음을 윈도우 매니저에 알림
             OnMinimizeWindow?.Invoke(this);
         }
         #endregion
@@ -452,7 +334,6 @@ namespace UGUIWindow
         #region Interface
         public void OnPointerDown(PointerEventData eventData)
         {
-            // 윈도우가 포커스를 얻었음을 윈도우 매니저에 알림
             OnFocusWindow?.Invoke(this);
         }
         #endregion

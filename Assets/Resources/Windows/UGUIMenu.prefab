@@ -528,6 +528,7 @@ GameObject:
   - component: {fileID: 5563103632473771679}
   - component: {fileID: 6146476001358910403}
   - component: {fileID: 2647940919294610528}
+  - component: {fileID: 3896702957109955343}
   - component: {fileID: 8499739566993383437}
   m_Layer: 0
   m_Name: UGUIMenu
@@ -607,6 +608,21 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &3896702957109955343
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8109981155679831523}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7bace6f0599ba6419e3e17f1209ea8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  windowHeader: {fileID: 0}
+  windowBorders: []
+  windowEdges: []
 --- !u!114 &8499739566993383437
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -620,9 +636,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _windowMode: 0
-  windowHeader: {fileID: 0}
-  windowBorders: []
-  windowEdges: []
   allowMultipleInstance: 0
   useObjectPooling: 1
   _hasHeader: 0
@@ -644,14 +657,5 @@ MonoBehaviour:
   OnMinimizeWindow:
     m_PersistentCalls:
       m_Calls: []
-  _lastWindowState:
-    anchorMin: {x: 0, y: 0}
-    anchorMax: {x: 0, y: 0}
-    anchoredPosition: {x: 0, y: 0}
-    sizeDelta: {x: 0, y: 0}
-    hasHeader: 0
-    hasBorder: 0
-    isMovable: 0
-    isResizable: 0
   buttonSetting: {fileID: 7463530665433260656}
   buttonQuit: {fileID: 4416143173834452549}

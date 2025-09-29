@@ -10,10 +10,8 @@ namespace UGUIWindow
         [SerializeField] private Button buttonSetting;
         [SerializeField] private Button buttonQuit;
 
-        protected override void Start()
+        private void Start()
         {
-            base.Start();
-            
             InitailizeButton();
         }
 
