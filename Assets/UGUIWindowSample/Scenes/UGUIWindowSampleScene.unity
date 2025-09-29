@@ -760,6 +760,10 @@ PrefabInstance:
       propertyPath: OnDPIChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
+    - target: {fileID: 5116989854169686686, guid: 2da6e74501ea0354f9669a149a8c5ca1, type: 3}
+      propertyPath: m_AdditionalShaderChannelsFlag
+      value: 25
+      objectReference: {fileID: 0}
     - target: {fileID: 5787970526414306312, guid: 2da6e74501ea0354f9669a149a8c5ca1, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

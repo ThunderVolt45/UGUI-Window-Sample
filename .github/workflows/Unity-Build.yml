@@ -58,7 +58,7 @@ jobs:
         id: artifact
         uses: actions/download-artifact@v5
         with:
-          artifacts-ids: ${{ env.ARTIFACTS }}
+          artifact-ids: ${{ env.ARTIFACTS }}
           path: artifacts/
       # Step2 - Check File Structure
       - name: Display structure of downloaded files

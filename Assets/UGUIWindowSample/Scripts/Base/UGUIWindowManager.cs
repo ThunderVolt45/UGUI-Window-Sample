@@ -124,12 +124,6 @@ namespace UGUIWindow
         {
             // 캔버스 초기화
             InitializeCanvas();
-
-            // 윈도우 생성
-            CreateWindow<UGUIWindow>();
-            CreateWindowEx<UGUIWindowMultipleInstanceSample>(null, -200, 0, 250, 250);
-            CreateWindowEx<UGUIWindowMultipleInstanceSample>("MultipleInstanceSample", -150, 50, 250, 250);
-            CreateWindowEx<UGUIWindowMultipleInstanceSample>("MultipleInstanceSample", -100, 100, 250, 250);
         }
 
         private void InitializeCanvas()

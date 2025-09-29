@@ -27,6 +27,12 @@ namespace UGUIWindow
         {
             FindIconInTransformRecursion(transform);
             OnIconClicked.AddListener(DivertOtherIcon);
+
+            // 윈도우 생성
+            UGUIWindowManager.CreateWindow<UGUIWindow>();
+            UGUIWindowManager.CreateWindowEx<UGUIWindowMultipleInstanceSample>(null, -200, 0, 250, 250);
+            UGUIWindowManager.CreateWindowEx<UGUIWindowMultipleInstanceSample>("MultipleInstanceSample", -150, 50, 250, 250);
+            UGUIWindowManager.CreateWindowEx<UGUIWindowMultipleInstanceSample>("MultipleInstanceSample", -100, 100, 250, 250);
         }
 
         private void FindIconInTransformRecursion(Transform transform)
