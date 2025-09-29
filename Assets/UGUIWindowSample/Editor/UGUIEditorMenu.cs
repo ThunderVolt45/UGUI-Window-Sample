@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UGUIWindow
 {
-    public class UGUIWindowEditorMenu
+    public class UGUIEditorMenu
     {
         [MenuItem("GameObject/UGUI Window/Create Window Manager")]
         public static void CreateWindowManager()
@@ -36,7 +36,12 @@ namespace UGUIWindow
         {
             // 커스텀 게임 오브젝트를 생성한다.
             GameObject windowTemplete = new GameObject("UGUIWindowTemplete");
+            windowTemplete.AddComponent<UGUIWindowView>();
             windowTemplete.AddComponent<UGUIWindow>();
+
+            // 커스텀 게임 오브젝트의 크기를 설정한다.
+            RectTransform rectTransform = windowTemplete.transform as RectTransform;
+            rectTransform.sizeDelta = new Vector2(200, 200);
 
             // 선택한 오브젝트가 있다면 그 오브젝트를 부모 오브젝트로 삼도록 한다.
             GameObjectUtility.SetParentAndAlign(windowTemplete, menuCommand.context as GameObject);

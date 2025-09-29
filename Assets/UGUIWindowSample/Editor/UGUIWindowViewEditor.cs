@@ -125,7 +125,7 @@ namespace UGUIWindow
         /// </summary>
         public void CreateBaseComponents()
         {
-            UGUIWindow window = (UGUIWindow)target;
+            UGUIWindowView window = (UGUIWindowView)target;
 
             Object headerPrefab = AssetDatabase.LoadAssetAtPath<Object>("Assets/UGUIWindowSample/Resources/BaseComponents/Header.prefab");
             Object borderPrefab = AssetDatabase.LoadAssetAtPath<Object>("Assets/UGUIWindowSample/Resources/BaseComponents/Borders.prefab");

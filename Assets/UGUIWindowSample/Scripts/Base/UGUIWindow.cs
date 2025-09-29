@@ -171,7 +171,7 @@ namespace UGUIWindow
 
         protected virtual void OnEnable()
         {
-            view.Fade(0f, 1f, 0.9f, 1f);
+            _ = view.Fade(0f, 1f, 0.9f, 1f);
         }
         #endregion
 
