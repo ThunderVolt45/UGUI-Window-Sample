@@ -312,6 +312,9 @@ namespace UGUIWindow
 #endif
 
             view.ApplyRestoredState(_lastWindowState);
+
+            HasBorder = _lastWindowState.hasBorder;
+            isMovable = _lastWindowState.isMovable;
         }
 
         public void Minimize()

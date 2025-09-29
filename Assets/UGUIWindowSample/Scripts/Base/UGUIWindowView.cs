@@ -106,7 +106,7 @@ namespace UGUIWindow
         public void ApplyRestoredState(UGUIWindowState state)
         {
             if (state == null) return;
-            
+
             RectTransform.anchorMin = state.anchorMin;
             RectTransform.anchorMax = state.anchorMax;
             RectTransform.anchoredPosition = state.anchoredPosition;
