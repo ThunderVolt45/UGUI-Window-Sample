@@ -6,7 +6,7 @@ using UnityEngine.UI;
 namespace UGUIWindow
 {
     [RequireComponent(typeof(Image))]
-    public class UGUIWindowHeader : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
+    public class UGUIWindowHeader : MonoBehaviour, IPointerClickHandler, IPointerDownHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         [Header("Header Components")]
         public TMP_Text windowTitle;
@@ -67,6 +67,22 @@ namespace UGUIWindow
         #endregion
 
         #region Pointer Event
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (eventData.clickCount == 2)
+            {
+                switch (parentWindow.WindowMode)
+                {
+                    case UGUIWindowMode.Maximized:
+                        parentWindow.WindowMode = UGUIWindowMode.Windowed;
+                        break;
+                    default:
+                        parentWindow.WindowMode = UGUIWindowMode.Maximized;
+                        break;
+                }
+            }
+        }
+
         public void OnPointerDown(PointerEventData eventData)
         {
             parentWindow.Focus();
