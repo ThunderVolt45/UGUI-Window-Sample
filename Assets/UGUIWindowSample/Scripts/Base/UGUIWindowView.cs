@@ -53,7 +53,6 @@ namespace UGUIWindow
         {
             if (windowHeader == null)
             {
-                UGUIWindowLog.LogError("Header의 활성화 상태를 변경하려 했으나 UGUIWindowHeader를 찾을 수 없습니다.");
                 return;
             }
 
@@ -81,6 +80,11 @@ namespace UGUIWindow
         /// </summary>
         private void ResolveBorderEdgeOverlap()
         {
+            if (windowHeader == null)
+            {
+                return;
+            }
+
             bool isHeaderActive = windowHeader.gameObject.activeSelf;
 
             foreach (var border in windowBorders)
