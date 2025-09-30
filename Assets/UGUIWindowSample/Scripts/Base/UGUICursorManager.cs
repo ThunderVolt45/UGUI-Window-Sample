@@ -144,19 +144,19 @@ namespace UGUIWindow
             }
 
             if (pointedObject.TryGetComponent<UGUIWindowBorder>(out var border))
+            {
+                switch (border.borderPosition)
                 {
-                    switch (border.borderPosition)
-                    {
-                        case UGUIBorderPosition.East:
-                        case UGUIBorderPosition.West:
-                            SetCursor(UGUICursor.ResizeHorizontal);
-                            return;
-                        case UGUIBorderPosition.North:
-                        case UGUIBorderPosition.South:
-                            SetCursor(UGUICursor.ResizeVetical);
-                            return;
-                    }
+                    case UGUIBorderPosition.East:
+                    case UGUIBorderPosition.West:
+                        SetCursor(UGUICursor.ResizeHorizontal);
+                        return;
+                    case UGUIBorderPosition.North:
+                    case UGUIBorderPosition.South:
+                        SetCursor(UGUICursor.ResizeVetical);
+                        return;
                 }
+            }
 
             if (pointedObject.TryGetComponent<UGUIWindowEdge>(out var edge))
             {

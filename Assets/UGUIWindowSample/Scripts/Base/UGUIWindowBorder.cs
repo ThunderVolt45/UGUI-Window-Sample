@@ -43,7 +43,7 @@ namespace UGUIWindow
             isDragging = true;
 
             // 드래그 중에 필요한 컴포넌트와 값들을 캐싱한다.
-            windowTransform = parentWindow.transform as RectTransform;
+            windowTransform = parentWindow.RectTransform;
             minimumWindowSize = parentWindow.minimumWindowSize;
         }
 

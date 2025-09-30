@@ -21,6 +21,7 @@ namespace UGUIWindow
         private void Awake()
         {
             canvasGroup = GetComponent<CanvasGroup>();
+
             RectTransform = transform as RectTransform;
         }
 
@@ -32,40 +33,73 @@ namespace UGUIWindow
             }
         }
 
-        public void SetExitButtonActive(bool isActive)
+        public void SetExitButtonActive(bool value)
         {
             if (windowHeader != null)
             {
-                windowHeader.SetExitButtonActive(isActive);
+                windowHeader.SetExitButtonActive(value);
             }
         }
 
-        public void SetMaximizeButtonActive(bool isActive)
+        public void SetMaximizeButtonActive(bool value)
         {
             if (windowHeader != null)
             {
-                windowHeader.SetMaximizeButtonActive(isActive);
+                windowHeader.SetMaximizeButtonActive(value);
             }
         }
 
-        public void SetHeaderActive(bool isActive)
+        public void SetHeaderActive(bool value)
         {
-            if (windowHeader != null)
+            if (windowHeader == null)
             {
-                windowHeader.gameObject.SetActive(isActive);
+                UGUIWindowLog.LogError("Header의 활성화 상태를 변경하려 했으나 UGUIWindowHeader를 찾을 수 없습니다.");
+                return;
             }
+
+            windowHeader.gameObject.SetActive(value);
+            ResolveBorderEdgeOverlap();
         }
 
-        public void SetBorderActive(bool isActive)
+        public void SetBorderActive(bool value)
         {
             foreach (var border in windowBorders)
             {
-                border.gameObject.SetActive(isActive);
+                border.gameObject.SetActive(value);
             }
 
             foreach (var edge in windowEdges)
             {
-                edge.gameObject.SetActive(isActive);
+                edge.gameObject.SetActive(value);
+            }
+
+            ResolveBorderEdgeOverlap();
+        }
+
+        /// <summary>
+        /// Header와 Border, Edge가 겹치지 않도록 하는 함수
+        /// </summary>
+        private void ResolveBorderEdgeOverlap()
+        {
+            bool isHeaderActive = windowHeader.gameObject.activeSelf;
+
+            foreach (var border in windowBorders)
+            {
+                if (border.GetComponentInParent<UGUIWindowHeader>() == null && border.borderPosition == UGUIBorderPosition.North)
+                {
+                    border.gameObject.SetActive(!isHeaderActive);
+                }
+            }
+
+            foreach (var edge in windowEdges)
+            {
+                if (edge.GetComponentInParent<UGUIWindowHeader>() == null)
+                {
+                    if (edge.edgePosition == UGUIEdgePosition.NorthEast || edge.edgePosition == UGUIEdgePosition.NorthWest)
+                    {
+                        edge.gameObject.SetActive(!isHeaderActive);
+                    }
+                }
             }
         }
 
@@ -90,9 +124,9 @@ namespace UGUIWindow
             transform.localScale = new Vector3(targetScale, targetScale, targetScale);
         }
 
-        public void SetActive(bool isActive)
+        public void SetActive(bool value)
         {
-            gameObject.SetActive(isActive);
+            gameObject.SetActive(value);
         }
 
         public void ApplyMaximizedState(float headerHeight)
