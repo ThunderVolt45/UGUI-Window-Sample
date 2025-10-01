@@ -24,7 +24,7 @@ namespace UGUIWindow
 
             RectTransform = transform as RectTransform;
         }
-
+        
         public void SetTitle(string title)
         {
             if (windowHeader != null)

@@ -180,7 +180,7 @@ namespace UGUIWindow
         /// </summary>
         /// <param name="windowName">윈도우의 이름</param>
         /// <param name="postInstantiationAction">윈도우 GameObject가 생성된 후 실행할 추가 작업</param>
-        private UGUIWindow GetOrCreateWindow(Type windowType, string windowName, Action<GameObject> postInstantiationAction = null)
+        private UGUIWindow GetOrCreateWindow(Type windowType, string windowName, Action<UGUIWindow> postInstantiationAction = null)
         {
             // 타입 검사
             // if (!typeof(UGUIWindow).IsAssignableFrom(windowType))
@@ -216,7 +216,7 @@ namespace UGUIWindow
             UGUIWindow createdWindow = createdObject.GetComponent<UGUIWindow>();
 
             // 메소드별 특화 로직 실행
-            postInstantiationAction?.Invoke(createdObject);
+            postInstantiationAction?.Invoke(createdWindow);
 
             // 윈도우 기본 설정
             string windowTitle = string.IsNullOrEmpty(windowName) ? key : windowName;
@@ -283,11 +283,10 @@ namespace UGUIWindow
         public static UGUIWindow CreateWindowEx<T>(string windowName, int x, int y, int width, int height) where T : UGUIWindow
         {
             // RectTransform 설정
-            Action<GameObject> setupAction = (createdObject) =>
+            Action<UGUIWindow> setupAction = (createdWindow) =>
             {
-                var windowTransform = createdObject.transform as RectTransform;
-                windowTransform.anchoredPosition = new Vector2(x, y);
-                windowTransform.sizeDelta = new Vector2(width, height);
+                createdWindow.Move(x, y);
+                createdWindow.Resize(width, height);
             };
 
             // 공통 메소드 호출
@@ -310,13 +309,11 @@ namespace UGUIWindow
         public static UGUIWindow CreateWindowEx<T>(string windowName, int x, int y, int width, int height, Vector2 anchorMin, Vector2 anchorMax) where T : UGUIWindow
         {
             // RectTransform 설정
-            Action<GameObject> setupAction = (createdObject) =>
+            Action<UGUIWindow> setupAction = (createdWindow) =>
             {
-                var windowTransform = createdObject.transform as RectTransform;
-                windowTransform.anchorMin = anchorMin;
-                windowTransform.anchorMax = anchorMax;
-                windowTransform.anchoredPosition = new Vector2(x, y);
-                windowTransform.sizeDelta = new Vector2(width, height);
+                createdWindow.SetAnchor(anchorMin, anchorMax);
+                createdWindow.Move(x, y);
+                createdWindow.Resize(width, height);
             };
 
             // 공통 메소드 호출

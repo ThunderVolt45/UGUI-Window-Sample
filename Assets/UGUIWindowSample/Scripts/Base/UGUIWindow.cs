@@ -325,6 +325,25 @@ namespace UGUIWindow
 #endif
             OnMinimizeWindow?.Invoke(this);
         }
+
+        public void Move(int x, int y)
+        {
+            RectTransform.anchoredPosition = new Vector2(x, y);
+            MemorizeLastWindowState();
+        }
+
+        public void Resize(int width, int height)
+        {
+            RectTransform.sizeDelta = new Vector2(width, height);
+            MemorizeLastWindowState();
+        }
+
+        public void SetAnchor(Vector2 anchorMin, Vector2 anchorMax)
+        {
+            RectTransform.anchorMin = anchorMin;
+            RectTransform.anchorMax = anchorMax;
+            MemorizeLastWindowState();
+        }
         #endregion
 
         #region Window - Etc
