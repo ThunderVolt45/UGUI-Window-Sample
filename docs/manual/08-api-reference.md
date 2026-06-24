@@ -1,0 +1,139 @@
+# 08. API 레퍼런스
+
+> [← 매뉴얼 목차로](../Manual.md)
+
+자주 쓰는 public API 요약입니다. 전체 멤버와 관계는 [클래스 다이어그램](../ClassDiagram.md)을 참고하세요.
+
+**목차**
+
+- [UGUIWindowManager (정적 진입점)](#uguiwindowmanager-정적-진입점)
+- [UGUIWindow (개별 창)](#uguiwindow-개별-창)
+- [UGUIWindowView (뷰)](#uguiwindowview-뷰)
+- [열거형](#열거형)
+- [로깅 (UGUIWindowLog)](#로깅-uguiwindowlog)
+
+---
+
+## UGUIWindowManager (정적 진입점)
+
+### 창 생성
+
+```csharp
+static UGUIWindow CreateWindow<T>(string windowName = null) where T : UGUIWindow
+static UGUIWindow CreateWindow(Type windowType, string windowName = null)
+static UGUIWindow CreateWindowEx<T>(string windowName, int x, int y, int width, int height)
+static UGUIWindow CreateWindowEx<T>(string windowName, int x, int y, int width, int height,
+                                    Vector2 anchorMin, Vector2 anchorMax)
+```
+
+- 프리팹은 `Resources/Windows/{타입명}.prefab`에서 로드됩니다(이름 일치 필수).
+- `CreateWindow(Type)`는 `UGUIWindow` 비상속 타입에 `ArgumentException`을 던집니다.
+
+### DPI / 기타
+
+```csharp
+static void  SetDPI(int screenWidth, int screenHeight, float dpi) // 캔버스 스케일 조정 + PlayerPrefs 저장
+static float CurrentDPI { get; }                                   // 현재 DPI
+void         TrimWindow()                                          // 비활성 풀의 창을 파괴
+float        ScreenMultiplierWidth { get; }                        // 드래그 DPI 보정 계수
+float        ScreenMultiplierHeight { get; }
+UnityEvent<int,int,float> OnDPIChanged                             // DPI 변경 알림
+```
+
+## UGUIWindow (개별 창)
+
+### 동작 메서드
+
+```csharp
+void Open()                                  // 열기 (+ OnOpenWindow)
+async void Close()                           // Fade 후 닫기 (+ OnCloseWindow)
+void Focus()                                 // 포커스/최상단 (+ OnFocusWindow)
+void Minimize()                              // 최소화 (+ OnMinimizeWindow)
+void Maximize()                              // 최대화 (isResizable 필요)
+void RestoreWindow()                         // 복원 (isResizable 필요)
+void ChangeWindowMode(UGUIWindowMode mode)   // 모드 전환 분기
+void Move(int x, int y)                       // 위치 설정 (+ 상태 기억)
+void Resize(int width, int height)            // 크기 설정 (+ 상태 기억)
+void SetAnchor(Vector2 anchorMin, Vector2 anchorMax) // 앵커 설정 (+ 상태 기억)
+void SetWindowTitle(string title)            // 타이틀 변경
+void MemorizeLastWindowState()               // 현재 상태 스냅샷 저장
+```
+
+### 프로퍼티 / 필드
+
+```csharp
+UGUIWindowMode WindowMode { get; set; }      // 설정 시 모드 전환 발생
+bool HasHeader { get; set; }
+bool HasBorder { get; set; }
+bool HasExitButton { get; set; }
+bool HasMaximizeButton { get; set; }
+RectTransform RectTransform { get; }
+
+bool allowMultipleInstance                   // 중복 생성 허용(풀링 비활성)
+bool useObjectPooling                         // 풀링 사용
+bool isMovable                                // 헤더 드래그 이동
+bool isResizable                              // 보더/엣지 리사이즈
+Vector2 minimumWindowSize                     // 최소 크기
+```
+
+### 이벤트
+
+```csharp
+UnityEvent<UGUIWindow> OnOpenWindow
+UnityEvent<UGUIWindow> OnCloseWindow
+UnityEvent<UGUIWindow> OnFocusWindow
+UnityEvent<UGUIWindow> OnMinimizeWindow
+```
+
+### 상속 시 주의
+
+`Awake`/`OnEnable`을 재정의하면 **반드시 `base`를 먼저 호출**하세요(View 연결·상태 초기화·Fade 인트로 담당).
+
+```csharp
+protected override void Awake()  { base.Awake();  /* ... */ }
+protected override void OnEnable(){ base.OnEnable(); /* ... */ }
+```
+
+## UGUIWindowView (뷰)
+
+```csharp
+void SetTitle(string title)
+void SetHeaderActive(bool value)
+void SetBorderActive(bool value)
+void SetExitButtonActive(bool value)
+void SetMaximizeButtonActive(bool value)
+void SetActive(bool value)
+Awaitable Fade(float startAlpha, float targetAlpha, float startScale, float targetScale, float dur = 0.15f)
+void ApplyMaximizedState(float headerHeight)
+void ApplyRestoredState(UGUIWindowState state)
+RectTransform RectTransform { get; }
+```
+
+대부분 `UGUIWindow`가 내부적으로 호출하므로 직접 쓸 일은 드뭅니다.
+
+## 열거형
+
+```csharp
+enum UGUIWindowMode    { Windowed, Maximized, Minimized }
+enum UGUIBorderPosition{ North, South, East, West }
+enum UGUIEdgePosition  { NorthEast, NorthWest, SouthEast, SouthWest }
+enum UGUICursor        { Default, ResizeHorizontal, ResizeVetical, ResizeDiagonalNeSw, ResizeDiagonalNwSe }
+enum UGUIWindowLogLevel{ Info, Warning, Error, None }
+```
+
+## 로깅 (UGUIWindowLog)
+
+```csharp
+static void Log(object message)
+static void LogWarning(object message)
+static void LogError(object message)
+// (각각 Object context 오버로드 존재)
+```
+
+빌드 종류별 로그 레벨(에디터=Info, 개발=Warning, 릴리즈=Error)에 따라 출력 여부가 결정됩니다.
+
+## 관련 문서
+
+- [클래스 다이어그램 인덱스](../ClassDiagram.md)
+- [매뉴얼 목차](../Manual.md)
+</content>
