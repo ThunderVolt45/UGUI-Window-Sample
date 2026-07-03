@@ -98,11 +98,17 @@ namespace UGUIWindow
 
         public void OnDrag(PointerEventData eventData)
         {
-            // 움직일 수 없는 창이라면 처리하지 않는다
-            if (!parentWindow.isMovable) return;
-
             // 드래그 중이 아니라면 처리하지 않는다
             if (!isDragging) return;
+
+            if (parentWindow.WindowMode == UGUIWindowMode.Maximized)
+            {
+                parentWindow.RestoreWindow();
+                windowTransform = parentWindow.transform as RectTransform;
+            }
+
+            // 움직일 수 없는 창이라면 처리하지 않는다
+            if (!parentWindow.isMovable) return;
 
             Vector2 pointerDelta = new Vector2(
                 eventData.delta.x * windowManager.ScreenMultiplierWidth,
@@ -115,6 +121,9 @@ namespace UGUIWindow
         public void OnEndDrag(PointerEventData eventData)
         {
             isDragging = false;
+
+            if (parentWindow.WindowMode == UGUIWindowMode.Maximized) return;
+
             parentWindow.MemorizeLastWindowState();
         }
         #endregion
