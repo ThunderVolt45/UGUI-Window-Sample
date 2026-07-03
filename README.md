@@ -58,6 +58,7 @@ UGUIWindowManager.CreateWindowEx<UGUIMenu>("메뉴", x: 0, y: 0, width: 300, hei
 | --- | --- |
 | [📖 매뉴얼](docs/Manual.md) | 설치·사용법·설계 설명을 담은 종합 가이드 (8개 챕터) |
 | [📐 클래스 다이어그램](docs/ClassDiagram.md) | 클래스 구조 레퍼런스 (Mermaid 다이어그램) |
+| [커밋 메시지 규약](docs/CommitMessages.md) | 이 프로젝트에서 사용하는 간단한 커밋 메시지 형식 |
 
 처음이라면 [매뉴얼 ▸ 01. 시작하기](docs/manual/01-getting-started.md)부터 읽어 보세요.
 
