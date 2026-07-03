@@ -46,6 +46,8 @@ namespace UGUIWindow
                     }
                 }
 
+                _instance.EnsureRuntimeState();
+
                 // 인스턴스 반환
                 return _instance;
             }
@@ -75,8 +77,23 @@ namespace UGUIWindow
         [Tooltip("DPI 설정이 변경되었을 때 실행할 Event")]
         public UnityEvent<int, int, float> OnDPIChanged;
 
+        [Tooltip("관리 중인 Window가 Open 상태가 되었을 때 실행할 Event")]
+        public UnityEvent<UGUIWindow> OnManagedWindowOpened;
+
+        [Tooltip("관리 중인 Window가 Close 되었을 때 실행할 Event")]
+        public UnityEvent<UGUIWindow> OnManagedWindowClosed;
+
+        [Tooltip("관리 중인 Window가 Focus 되었을 때 실행할 Event")]
+        public UnityEvent<UGUIWindow> OnManagedWindowFocused;
+
+        [Tooltip("관리 중인 Window가 Minimize 되었을 때 실행할 Event")]
+        public UnityEvent<UGUIWindow> OnManagedWindowMinimized;
+
         // 현재 열려있는 윈도우의 순서를 저장하는 이중 연결 리스트
         private DoublyLinkedList<UGUIWindow> currentlyOpenedWindows;
+
+        // 작업 표시줄 등 외부 UI에 표시될 수 있는 Open/Minimize 상태의 윈도우 목록
+        private HashSet<UGUIWindow> managedVisibleWindows;
 
         // 생성된 윈도우가 저장된 오브젝트 풀
         private Dictionary<string, UGUIWindow> windowPool;
@@ -96,6 +113,15 @@ namespace UGUIWindow
             get { return _screenMultiplierHeight; }
         }
 
+        public IEnumerable<UGUIWindow> ManagedVisibleWindows
+        {
+            get
+            {
+                EnsureRuntimeState();
+                return managedVisibleWindows.Where(window => window != null);
+            }
+        }
+
         private float _currentDPI = 2f;
         private float _screenMultiplierWidth = 1f;
         private float _screenMultiplierHeight = 1f;
@@ -104,20 +130,33 @@ namespace UGUIWindow
         private void Awake()
         {
             // 인스턴스 중복이 감지된다면 자폭한다
-            if (_instance != null)
+            if (_instance != null && _instance != this)
             {
                 Destroy(gameObject);
+                return;
             }
+
+            _instance = this;
             
-            // 자료구조 초기화
-            currentlyOpenedWindows = new DoublyLinkedList<UGUIWindow>();
-            windowPool = new Dictionary<string, UGUIWindow>();
+            EnsureRuntimeState();
 
             // 애플리케이션이 더 이상 메모리를 확보할 수 없을 때 호출할 함수 등록
             Application.lowMemory += OnLowMemory;
 
             // 씬 이동으로 인해 파괴되지 않도록 설정
             DontDestroyOnLoad(gameObject);
+        }
+
+        private void EnsureRuntimeState()
+        {
+            currentlyOpenedWindows ??= new DoublyLinkedList<UGUIWindow>();
+            managedVisibleWindows ??= new HashSet<UGUIWindow>();
+            windowPool ??= new Dictionary<string, UGUIWindow>();
+
+            OnManagedWindowOpened ??= new UnityEvent<UGUIWindow>();
+            OnManagedWindowClosed ??= new UnityEvent<UGUIWindow>();
+            OnManagedWindowFocused ??= new UnityEvent<UGUIWindow>();
+            OnManagedWindowMinimized ??= new UnityEvent<UGUIWindow>();
         }
 
         private void Start()
@@ -182,6 +221,8 @@ namespace UGUIWindow
         /// <param name="postInstantiationAction">윈도우 GameObject가 생성된 후 실행할 추가 작업</param>
         private UGUIWindow GetOrCreateWindow(Type windowType, string windowName, Action<UGUIWindow> postInstantiationAction = null)
         {
+            EnsureRuntimeState();
+
             // 타입 검사
             // if (!typeof(UGUIWindow).IsAssignableFrom(windowType))
             // {
@@ -237,6 +278,9 @@ namespace UGUIWindow
             createdWindow.OnCloseWindow.AddListener(OnWindowClosed);
             createdWindow.OnFocusWindow.AddListener(OnWindowFocused);
             createdWindow.OnMinimizeWindow.AddListener(OnWindowMinimized);
+
+            managedVisibleWindows.Add(createdWindow);
+            OnManagedWindowOpened?.Invoke(createdWindow);
 
             return createdWindow;
         }
@@ -325,6 +369,8 @@ namespace UGUIWindow
         #region Window - Event
         private void OnWindowOpened(UGUIWindow openedWindow)
         {
+            EnsureRuntimeState();
+
             // 윈도우를 기본 캔버스로 이동시킨다.
             openedWindow.transform.SetParent(mainCanvasScaler.transform);
 
@@ -334,30 +380,45 @@ namespace UGUIWindow
             // 이중 연결 리스트에서 최말단으로 이동
             currentlyOpenedWindows.Remove(openedWindow);
             currentlyOpenedWindows.AddLast(openedWindow);
+
+            managedVisibleWindows.Add(openedWindow);
+            OnManagedWindowOpened?.Invoke(openedWindow);
         }
 
         private void OnWindowFocused(UGUIWindow focusedWindow)
         {
+            EnsureRuntimeState();
+
             // 오브젝트를 최상단으로 올림
             focusedWindow.transform.SetAsLastSibling();
 
             // 이중 연결 리스트에서 최말단으로 이동
             currentlyOpenedWindows.Remove(focusedWindow);
             currentlyOpenedWindows.AddLast(focusedWindow);
+
+            OnManagedWindowFocused?.Invoke(focusedWindow);
         }
 
         private void OnWindowMinimized(UGUIWindow minimizedWindow)
         {
+            EnsureRuntimeState();
+
             // 최소화된 윈도우는 일단 열린 상태는 아닌 것으로 간주한다.
             currentlyOpenedWindows.Remove(minimizedWindow);
 
             // 윈도우를 최소화 풀로 이동시킨다.
             minimizedWindow.transform.SetParent(minimizedObjectPool.transform);
+
+            managedVisibleWindows.Add(minimizedWindow);
+            OnManagedWindowMinimized?.Invoke(minimizedWindow);
         }
 
         private void OnWindowClosed(UGUIWindow closedWindow)
         {
+            EnsureRuntimeState();
+
             currentlyOpenedWindows.Remove(closedWindow);
+            managedVisibleWindows.Remove(closedWindow);
 
             // 윈도우가 오브젝트 풀링을 사용하는 경우
             if (closedWindow.useObjectPooling && !closedWindow.allowMultipleInstance)
@@ -365,6 +426,8 @@ namespace UGUIWindow
                 // 윈도우를 오브젝트 풀 안으로 이동
                 closedWindow.transform.SetParent(disabledObjectPool.transform);
             }
+
+            OnManagedWindowClosed?.Invoke(closedWindow);
         }
 
         private void OnWindowDestroyed(UGUIWindow destroyedWindow)
@@ -385,6 +448,8 @@ namespace UGUIWindow
         // 현재 사용하고 있지 않은 윈도우를 오브젝트 풀에서 제거
         public void TrimWindow()
         {
+            EnsureRuntimeState();
+
             // 임시 리스트 생성
             List<string> keysToRemove = new List<string>();
 
@@ -409,6 +474,8 @@ namespace UGUIWindow
         #region InputSystem
         private void OnCancel()
         {
+            EnsureRuntimeState();
+
             // 만약 열려있는 윈도우가 있다면 최말단 윈도우를 닫는다.
             if (currentlyOpenedWindows.Count > 0)
             {

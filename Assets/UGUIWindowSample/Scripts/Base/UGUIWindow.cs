@@ -50,6 +50,9 @@ namespace UGUIWindow
         [Tooltip("윈도우가 가져야 할 최소 크기")]
         public Vector2 minimumWindowSize = new Vector2(100, 100);
 
+        [Tooltip("작업 표시줄 등에 표시할 윈도우 아이콘")]
+        [SerializeField] private Sprite windowIcon;
+
         [Header("Window Events")]
         [Space(5f)]
         [Tooltip("윈도우가 열릴 때 호출할 이벤트")]
@@ -131,6 +134,12 @@ namespace UGUIWindow
         }
         
         public RectTransform RectTransform { get { return view.RectTransform; } }
+
+        public Sprite WindowIcon
+        {
+            get { return windowIcon; }
+            set { windowIcon = value; }
+        }
         #endregion
 
         #region Variables
@@ -324,6 +333,22 @@ namespace UGUIWindow
             _prevWindowMode = _windowMode;
 #endif
             OnMinimizeWindow?.Invoke(this);
+        }
+
+        public void RestoreFromMinimized()
+        {
+            if (_windowMode != UGUIWindowMode.Minimized)
+            {
+                Focus();
+                return;
+            }
+
+            _windowMode = UGUIWindowMode.Windowed;
+#if UNITY_EDITOR
+            _prevWindowMode = _windowMode;
+#endif
+            Open();
+            Focus();
         }
 
         public void Move(int x, int y)

@@ -11,6 +11,7 @@ namespace UGUIWindow
     public class UGUIDesktop : MonoBehaviour, IPointerClickHandler
     {
         [SerializeField] private List<UGUIIcon> icons = new();
+        [SerializeField] private bool createDemoWindowsOnStart = false;
 
         [Space(5f)]
         public UnityEvent<UGUIIcon> OnIconClicked;
@@ -27,8 +28,16 @@ namespace UGUIWindow
         {
             FindIconInTransformRecursion(transform);
             OnIconClicked.AddListener(DivertOtherIcon);
+            UGUITaskBar.Instance.AttachToDesktop(this);
 
-            // 윈도우 생성
+            if (createDemoWindowsOnStart)
+            {
+                CreateDemoWindows();
+            }
+        }
+
+        private void CreateDemoWindows()
+        {
             UGUIWindowManager.CreateWindow<UGUIWindow>();
             UGUIWindowManager.CreateWindowEx<UGUIWindowMultipleInstanceSample>(null, -200, 0, 250, 250);
             UGUIWindowManager.CreateWindowEx<UGUIWindowMultipleInstanceSample>("MultipleInstanceSample", -150, 50, 250, 250);
