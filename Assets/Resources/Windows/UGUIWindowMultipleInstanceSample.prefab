@@ -280,6 +280,7 @@ MonoBehaviour:
   isMovable: 1
   isResizable: 1
   minimumWindowSize: {x: 100, y: 100}
+  windowIcon: {fileID: 21300000, guid: c62986808f914fbd9cba83e68c7ff977, type: 3}
   OnOpenWindow:
     m_PersistentCalls:
       m_Calls: []

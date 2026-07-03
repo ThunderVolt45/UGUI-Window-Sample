@@ -25,7 +25,7 @@ Assets/UGUIWindowSample/Scenes/UGUIWindowSampleScene.unity
 | 클래스 | 역할 |
 | --- | --- |
 | `UGUIDesktop` | 바탕화면. 시작 시 데모 창을 띄우고 아이콘을 관리 |
-| `UGUIIcon` | 바탕화면 아이콘. 더블클릭으로 창 생성 |
+| `UGUIIcon` | 바탕화면 아이콘. 대상 창 아이콘을 표시하고 더블클릭으로 창 생성 |
 | `UGUIMenu` | 시작/메뉴 창. 설정 열기·종료 버튼 |
 | `UGUIApplicationSetting` | 설정 창. 해상도·프레임레이트·창 모드·DPI 변경 |
 | `UGUIWindowMultipleInstanceSample` | 다중 인스턴스/풀링 시연용 빈 창 |
@@ -45,7 +45,7 @@ UGUIWindowManager.CreateWindowEx<UGUIWindowMultipleInstanceSample>("MultipleInst
 - 같은 타입(`UGUIWindowMultipleInstanceSample`)을 위치만 바꿔 **세 번** 생성합니다 → 다중 인스턴스 동작 확인.
 - 바탕화면의 빈 곳을 클릭하면 모든 아이콘의 선택(포커스)이 해제됩니다.
 
-`UGUIIcon`은 **더블클릭**을 직접 판정합니다(`doubleClickThreshold` 내 연속 클릭). 더블클릭하면 `targetClassName` 문자열로 타입을 찾아 창을 엽니다.
+`UGUIIcon`은 `targetClassName`에 맞는 `Resources/Windows/{ClassName}` 프리팹에서 `WindowIcon`을 읽어 바탕화면 아이콘에 표시합니다. 또한 **더블클릭**을 직접 판정합니다(`doubleClickThreshold` 내 연속 클릭). 더블클릭하면 `targetClassName` 문자열로 타입을 찾아 창을 엽니다.
 
 ```csharp
 // 문자열 → 타입 → 창 생성

@@ -29,6 +29,12 @@ namespace UGUIWindow
         private float lastClickTime = -1f; // 마지막 클릭 시간을 기록하는 변수 (-1로 초기화)
 
         #region Initialize
+        private void Awake()
+        {
+            ResolveReferences();
+            ApplyTargetWindowIcon();
+        }
+
         private void Start()
         {
             OnDoubleClickIcon.AddListener(OpenWindow);
@@ -36,6 +42,56 @@ namespace UGUIWindow
         #endregion
 
         #region Functions
+        private void ResolveReferences()
+        {
+            if (imageBackground == null)
+            {
+                imageBackground = GetComponent<Image>();
+            }
+
+            if (imageIcon == null)
+            {
+                imageIcon = GetComponent<Image>();
+            }
+
+            if (imageIcon == imageBackground)
+            {
+                Image[] childImages = GetComponentsInChildren<Image>(true);
+                foreach (Image childImage in childImages)
+                {
+                    if (childImage != imageBackground)
+                    {
+                        imageIcon = childImage;
+                        break;
+                    }
+                }
+            }
+        }
+
+        private void ApplyTargetWindowIcon()
+        {
+            if (imageIcon == null || string.IsNullOrWhiteSpace(targetClassName))
+            {
+                return;
+            }
+
+            var windowPrefab = Resources.Load<GameObject>($"Windows/{targetClassName}");
+            if (windowPrefab == null || !windowPrefab.TryGetComponent(out UGUIWindow targetWindow))
+            {
+                return;
+            }
+
+            Sprite windowIcon = targetWindow.WindowIcon;
+            if (windowIcon == null)
+            {
+                return;
+            }
+
+            imageIcon.sprite = windowIcon;
+            imageIcon.enabled = true;
+            imageIcon.preserveAspect = true;
+        }
+
         private void OpenWindow()
         {
             Type targetWindowType = Type.GetType($"UGUIWindow.{targetClassName}", true);
