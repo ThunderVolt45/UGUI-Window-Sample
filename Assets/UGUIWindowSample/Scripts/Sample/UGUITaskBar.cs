@@ -56,6 +56,7 @@ namespace UGUIWindow
         private readonly Dictionary<UGUIWindow, UGUITaskIcon> icons = new();
 
         private UGUIWindowManager subscribedManager;
+        private UGUIWindowManager maximizedWindowAreaManager;
         private RectTransform rectTransform;
         private bool isSubscribed;
         private bool registeredMaximizedWindowArea;
@@ -119,6 +120,10 @@ namespace UGUIWindow
             }
 
             subscribedManager = UGUIWindowManager.Instance;
+            if (subscribedManager == null)
+            {
+                return;
+            }
 
             subscribedManager.OnManagedWindowOpened.AddListener(HandleWindowOpened);
             subscribedManager.OnManagedWindowClosed.AddListener(HandleWindowClosed);
@@ -321,9 +326,16 @@ namespace UGUIWindow
             rectTransform.anchoredPosition = Vector2.zero;
             rectTransform.sizeDelta = new Vector2(0f, taskBarHeight);
 
-            UGUIWindowManager.Instance.SetMaximizedWindowOffsets(
+            var manager = UGUIWindowManager.Instance;
+            if (manager == null)
+            {
+                return;
+            }
+
+            manager.SetMaximizedWindowOffsets(
                 new Vector2(0f, taskBarHeight),
                 Vector2.zero);
+            maximizedWindowAreaManager = manager;
             registeredMaximizedWindowArea = true;
         }
 
@@ -334,7 +346,12 @@ namespace UGUIWindow
                 return;
             }
 
-            UGUIWindowManager.Instance.ClearMaximizedWindowOffsets();
+            if (maximizedWindowAreaManager != null)
+            {
+                maximizedWindowAreaManager.ClearMaximizedWindowOffsets();
+            }
+
+            maximizedWindowAreaManager = null;
             registeredMaximizedWindowArea = false;
         }
 

@@ -21,6 +21,7 @@ namespace UGUIWindow
     {
         private static UGUICursorManager _instance;
         private static object locker = new object(); // Thread-Safe한 싱글톤 패턴을 구현하기 위한 lock
+        private static bool isShuttingDown;
 
         public static UGUICursorManager Instance
         {
@@ -29,6 +30,11 @@ namespace UGUIWindow
                 // 인스턴스가 존재하지 않을 경우
                 if (_instance == null)
                 {
+                    if (isShuttingDown)
+                    {
+                        return null;
+                    }
+
                     // 일단 인스턴스가 존재하는 지 확인
                     _instance = FindAnyObjectByType<UGUICursorManager>(FindObjectsInactive.Include);
 
@@ -47,6 +53,11 @@ namespace UGUIWindow
                         {
                             if (_instance == null)
                             {
+                                if (isShuttingDown)
+                                {
+                                    return null;
+                                }
+
                                 var managerPrefab = Resources.Load<GameObject>("UGUIWindowManager");
                                 var managerGameObject = Instantiate(managerPrefab);
                                 _instance = managerGameObject.GetComponent<UGUICursorManager>();
@@ -58,6 +69,13 @@ namespace UGUIWindow
                 // 인스턴스 반환
                 return _instance;
             }
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStaticState()
+        {
+            _instance = null;
+            isShuttingDown = false;
         }
 
         [Header("Cursor Textures")]
@@ -82,7 +100,30 @@ namespace UGUIWindow
 
         private void Awake()
         {
+            if (_instance != null && _instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            _instance = this;
+            isShuttingDown = false;
+
             SetCursor(UGUICursor.Default);
+        }
+
+        private void OnApplicationQuit()
+        {
+            isShuttingDown = true;
+        }
+
+        private void OnDestroy()
+        {
+            if (_instance == this)
+            {
+                isShuttingDown = true;
+                _instance = null;
+            }
         }
 
         /// <summary>
@@ -112,22 +153,28 @@ namespace UGUIWindow
 
         public static void SetCursor(UGUICursor cursor)
         {
+            var manager = Instance;
+            if (manager == null)
+            {
+                return;
+            }
+
             switch (cursor)
             {
                 case UGUICursor.ResizeHorizontal:
-                    Cursor.SetCursor(Instance.resizeHorizontalCursor, Instance.resizeHorizontalCursorHotspot, CursorMode.Auto);
+                    Cursor.SetCursor(manager.resizeHorizontalCursor, manager.resizeHorizontalCursorHotspot, CursorMode.Auto);
                     break;
                 case UGUICursor.ResizeVetical:
-                    Cursor.SetCursor(Instance.resizeVerticalCursor, Instance.resizeVerticalCursorHotspot, CursorMode.Auto);
+                    Cursor.SetCursor(manager.resizeVerticalCursor, manager.resizeVerticalCursorHotspot, CursorMode.Auto);
                     break;
                 case UGUICursor.ResizeDiagonalNeSw:
-                    Cursor.SetCursor(Instance.resizeDiagonalNeSwCursor, Instance.resizeDiagonalNeSwCursorHotspot, CursorMode.Auto);
+                    Cursor.SetCursor(manager.resizeDiagonalNeSwCursor, manager.resizeDiagonalNeSwCursorHotspot, CursorMode.Auto);
                     break;
                 case UGUICursor.ResizeDiagonalNwSe:
-                    Cursor.SetCursor(Instance.resizeDiagonalNwSeCursor, Instance.resizeDiagonalNwSeCursorHotspot, CursorMode.Auto);
+                    Cursor.SetCursor(manager.resizeDiagonalNwSeCursor, manager.resizeDiagonalNwSeCursorHotspot, CursorMode.Auto);
                     break;
                 default:
-                    Cursor.SetCursor(Instance.defaultCursor, Instance.defaultCursorHotspot, CursorMode.Auto);
+                    Cursor.SetCursor(manager.defaultCursor, manager.defaultCursorHotspot, CursorMode.Auto);
                     break;
             }
         }
