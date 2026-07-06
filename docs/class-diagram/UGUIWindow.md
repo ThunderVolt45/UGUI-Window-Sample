@@ -50,6 +50,7 @@ classDiagram
         +bool HasExitButton
         +bool HasMaximizeButton
         +RectTransform RectTransform
+        +string WindowTitle
         #Awake()
         #OnEnable()
         +SetWindowTitle(string)

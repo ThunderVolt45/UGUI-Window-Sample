@@ -35,6 +35,11 @@ static UGUIWindow CreateWindowEx<T>(string windowName, int x, int y, int width, 
 ```csharp
 static void  SetDPI(int screenWidth, int screenHeight, float dpi) // 캔버스 스케일 조정 + PlayerPrefs 저장
 static float CurrentDPI { get; }                                   // 현재 DPI
+IReadOnlyList<UGUIWindow> GetOpenWindows()                         // MainCanvas 하위 활성 창
+IReadOnlyList<UGUIWindow> GetVisibleWindows()                       // MainCanvas + 최소화 풀의 활성 창
+IReadOnlyList<UGUIWindow> GetSwitchableWindows()                    // 최근 포커스 순서의 전환 후보
+UGUIWindow   GetFocusedWindow()                                     // MainCanvas의 마지막 활성 Window
+void         FocusWindow(UGUIWindow window)                         // 최소화 복원 포함 포커스
 void         TrimWindow()                                          // 비활성 풀의 창을 파괴
 float        ScreenMultiplierWidth { get; }                        // 드래그 DPI 보정 계수
 float        ScreenMultiplierHeight { get; }
@@ -69,6 +74,7 @@ bool HasBorder { get; set; }
 bool HasExitButton { get; set; }
 bool HasMaximizeButton { get; set; }
 RectTransform RectTransform { get; }
+string WindowTitle { get; }                  // SetWindowTitle로 지정된 제목
 
 bool allowMultipleInstance                   // 중복 생성 허용(풀링 비활성)
 bool useObjectPooling                         // 풀링 사용

@@ -120,6 +120,9 @@ namespace UGUIWindow
         // 작업 표시줄 등 외부 UI에 표시될 수 있는 Open/Minimize 상태의 윈도우 목록
         private HashSet<UGUIWindow> managedVisibleWindows;
 
+        // MainCanvas와 MinimizedWindow에 걸친 최근 포커스 순서
+        private LinkedList<UGUIWindow> recentlyFocusedWindows;
+
         // 생성된 윈도우가 저장된 오브젝트 풀
         private Dictionary<string, UGUIWindow> windowPool;
 
@@ -156,8 +159,7 @@ namespace UGUIWindow
         {
             get
             {
-                EnsureRuntimeState();
-                return managedVisibleWindows.Where(window => window != null);
+                return GetVisibleWindows();
             }
         }
 
@@ -207,6 +209,7 @@ namespace UGUIWindow
         {
             currentlyOpenedWindows ??= new DoublyLinkedList<UGUIWindow>();
             managedVisibleWindows ??= new HashSet<UGUIWindow>();
+            recentlyFocusedWindows ??= new LinkedList<UGUIWindow>();
             windowPool ??= new Dictionary<string, UGUIWindow>();
 
             OnManagedWindowOpened ??= new UnityEvent<UGUIWindow>();
@@ -227,6 +230,168 @@ namespace UGUIWindow
             var dpi = PlayerPrefs.GetFloat("DPI Settings", 2f);
 
             SetDPI(currentResolution.width, currentResolution.height, dpi);
+        }
+        #endregion
+
+        #region Window - Query
+        public IReadOnlyList<UGUIWindow> GetOpenWindows()
+        {
+            EnsureRuntimeState();
+
+            var windows = new List<UGUIWindow>();
+            CollectActiveChildWindows(mainCanvasScaler != null ? mainCanvasScaler.transform : null, windows);
+            return windows;
+        }
+
+        public IReadOnlyList<UGUIWindow> GetVisibleWindows()
+        {
+            EnsureRuntimeState();
+
+            var windows = new List<UGUIWindow>();
+            CollectActiveChildWindows(mainCanvasScaler != null ? mainCanvasScaler.transform : null, windows);
+            CollectActiveChildWindows(minimizedObjectPool != null ? minimizedObjectPool.transform : null, windows);
+            return windows;
+        }
+
+        public IReadOnlyList<UGUIWindow> GetSwitchableWindows()
+        {
+            EnsureRuntimeState();
+
+            var switchableWindows = GetVisibleWindows();
+            var remainingWindows = new HashSet<UGUIWindow>(switchableWindows);
+            var orderedWindows = new List<UGUIWindow>();
+
+            var node = recentlyFocusedWindows.First;
+            while (node != null)
+            {
+                var next = node.Next;
+                var window = node.Value;
+
+                if (window == null || !remainingWindows.Contains(window))
+                {
+                    recentlyFocusedWindows.Remove(node);
+                }
+                else
+                {
+                    orderedWindows.Add(window);
+                    remainingWindows.Remove(window);
+                }
+
+                node = next;
+            }
+
+            foreach (var window in switchableWindows)
+            {
+                if (!remainingWindows.Remove(window))
+                {
+                    continue;
+                }
+
+                orderedWindows.Add(window);
+                recentlyFocusedWindows.AddLast(window);
+            }
+
+            return orderedWindows;
+        }
+
+        public UGUIWindow GetFocusedWindow()
+        {
+            EnsureRuntimeState();
+
+            if (mainCanvasScaler == null)
+            {
+                return null;
+            }
+
+            var mainCanvasTransform = mainCanvasScaler.transform;
+            for (int i = mainCanvasTransform.childCount - 1; i >= 0; i--)
+            {
+                var child = mainCanvasTransform.GetChild(i);
+                if (!child.gameObject.activeInHierarchy)
+                {
+                    continue;
+                }
+
+                if (child.TryGetComponent(out UGUIWindow window) && window.isActiveAndEnabled)
+                {
+                    return window;
+                }
+            }
+
+            return null;
+        }
+
+        public void FocusWindow(UGUIWindow window)
+        {
+            EnsureRuntimeState();
+
+            if (!IsSwitchableWindow(window))
+            {
+                return;
+            }
+
+            if (window.WindowMode == UGUIWindowMode.Minimized)
+            {
+                window.RestoreFromMinimized();
+                return;
+            }
+
+            window.Focus();
+        }
+
+        private void CollectActiveChildWindows(Transform parent, List<UGUIWindow> results)
+        {
+            if (parent == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < parent.childCount; i++)
+            {
+                var child = parent.GetChild(i);
+                if (!child.gameObject.activeInHierarchy)
+                {
+                    continue;
+                }
+
+                if (child.TryGetComponent(out UGUIWindow window) && window.isActiveAndEnabled)
+                {
+                    results.Add(window);
+                }
+            }
+        }
+
+        private bool IsSwitchableWindow(UGUIWindow window)
+        {
+            if (window == null || !window.isActiveAndEnabled)
+            {
+                return false;
+            }
+
+            var parent = window.transform.parent;
+            return (mainCanvasScaler != null && parent == mainCanvasScaler.transform)
+                || (minimizedObjectPool != null && parent == minimizedObjectPool.transform);
+        }
+
+        private void PromoteRecentlyFocusedWindow(UGUIWindow window)
+        {
+            if (window == null)
+            {
+                return;
+            }
+
+            recentlyFocusedWindows.Remove(window);
+            recentlyFocusedWindows.AddFirst(window);
+        }
+
+        private void EnsureRecentlyFocusedWindow(UGUIWindow window)
+        {
+            if (window == null || recentlyFocusedWindows.Contains(window))
+            {
+                return;
+            }
+
+            recentlyFocusedWindows.AddLast(window);
         }
         #endregion
 
@@ -350,6 +515,7 @@ namespace UGUIWindow
 
             // 현재 열려있는 윈도우 리스트에 등록
             currentlyOpenedWindows.AddLast(createdWindow);
+            PromoteRecentlyFocusedWindow(createdWindow);
 
             // 윈도우 이벤트 리스너 등록
             createdWindow.OnOpenWindow.AddListener(OnWindowOpened);
@@ -461,6 +627,7 @@ namespace UGUIWindow
             // 이중 연결 리스트에서 최말단으로 이동
             currentlyOpenedWindows.Remove(openedWindow);
             currentlyOpenedWindows.AddLast(openedWindow);
+            PromoteRecentlyFocusedWindow(openedWindow);
 
             managedVisibleWindows.Add(openedWindow);
             OnManagedWindowOpened?.Invoke(openedWindow);
@@ -476,6 +643,7 @@ namespace UGUIWindow
             // 이중 연결 리스트에서 최말단으로 이동
             currentlyOpenedWindows.Remove(focusedWindow);
             currentlyOpenedWindows.AddLast(focusedWindow);
+            PromoteRecentlyFocusedWindow(focusedWindow);
 
             OnManagedWindowFocused?.Invoke(focusedWindow);
         }
@@ -491,6 +659,7 @@ namespace UGUIWindow
             minimizedWindow.transform.SetParent(minimizedObjectPool.transform);
 
             managedVisibleWindows.Add(minimizedWindow);
+            EnsureRecentlyFocusedWindow(minimizedWindow);
             OnManagedWindowMinimized?.Invoke(minimizedWindow);
         }
 
@@ -500,6 +669,7 @@ namespace UGUIWindow
 
             currentlyOpenedWindows.Remove(closedWindow);
             managedVisibleWindows.Remove(closedWindow);
+            recentlyFocusedWindows.Remove(closedWindow);
 
             // 윈도우가 오브젝트 풀링을 사용하는 경우
             if (closedWindow.useObjectPooling && !closedWindow.allowMultipleInstance)

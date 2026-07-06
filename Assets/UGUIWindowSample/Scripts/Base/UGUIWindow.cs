@@ -135,6 +135,8 @@ namespace UGUIWindow
         
         public RectTransform RectTransform { get { return view.RectTransform; } }
 
+        public string WindowTitle { get; private set; }
+
         public Sprite WindowIcon
         {
             get { return windowIcon; }
@@ -229,6 +231,7 @@ namespace UGUIWindow
         #region Window - Setter
         public void SetWindowTitle(string title)
         {
+            WindowTitle = title;
             view.SetTitle(title);
         }
         #endregion

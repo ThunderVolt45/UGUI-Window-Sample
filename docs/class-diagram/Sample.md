@@ -41,6 +41,18 @@ classDiagram
     class UGUIWindowMultipleInstanceSample {
     }
 
+    class UGUIWindowSwitcher {
+        <<MonoBehaviour>>
+        -Key modifierKey
+        -Key switchKey
+        -List~UGUIWindow~ candidates
+        -int selectedIndex
+        -BeginSwitch(int)
+        -MoveSelection(int)
+        -CommitSwitch()
+        -CancelSwitch()
+    }
+
     class UGUIDesktop {
         <<MonoBehaviour>>
         -List~UGUIIcon~ icons
@@ -75,7 +87,9 @@ classDiagram
     UGUIDesktop o-- "*" UGUIIcon
     UGUIIcon ..> UGUIDesktop
     UGUIDesktop ..> UGUIWindowManager : CreateWindow
+    UGUIDesktop ..> UGUIWindowSwitcher : AttachToDesktop
     UGUIIcon ..> UGUIWindowManager : CreateWindow
+    UGUIWindowSwitcher ..> UGUIWindowManager : GetSwitchableWindows / FocusWindow
     UGUIMenu ..> UGUIApplicationSetting : 설정 창 열기
 ```
 
@@ -86,6 +100,7 @@ classDiagram
 - **`UGUIMenu`** — 설정 버튼으로 `UGUIApplicationSetting` 창을 열고 자신을 닫으며, 종료 버튼으로 애플리케이션을 종료합니다.
 - **`UGUIApplicationSetting`** — 해상도/프레임레이트/윈도우 모드/DPI 드롭다운을 구성하고, `ApplySetting`에서 `Screen.SetResolution`과 `UGUIWindowManager.SetDPI`를 적용합니다. `Awake`/`OnEnable`을 `override`하여 부모 초기화 후 추가 로직을 실행합니다.
 - **`UGUIWindowMultipleInstanceSample`** — 다중 인스턴스/풀링 동작 확인용 빈 창.
+- **`UGUIWindowSwitcher`** — `Ctrl + Backquote`를 Alt+Tab 대체 입력으로 사용해 전환 오버레이를 표시합니다. 후보는 `UGUIWindowManager.GetSwitchableWindows`에서 받아오며, 확정 시 `FocusWindow`로 최소화 복원과 포커스를 처리합니다.
 
 ## 관련 문서
 

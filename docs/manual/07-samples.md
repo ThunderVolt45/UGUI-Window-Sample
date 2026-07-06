@@ -16,6 +16,7 @@ Assets/UGUIWindowSample/Scenes/UGUIWindowSampleScene.unity
 - [데스크톱과 아이콘](#데스크톱과-아이콘)
 - [메뉴 창 (UGUIMenu)](#메뉴-창-uguimenu)
 - [설정 창 (UGUIApplicationSetting)](#설정-창-uguiapplicationsetting)
+- [창 전환 오버레이](#창-전환-오버레이)
 - [데모로 확인할 수 있는 것](#데모로-확인할-수-있는-것)
 
 ---
@@ -29,6 +30,7 @@ Assets/UGUIWindowSample/Scenes/UGUIWindowSampleScene.unity
 | `UGUIMenu` | 시작/메뉴 창. 설정 열기·종료 버튼 |
 | `UGUIApplicationSetting` | 설정 창. 해상도·프레임레이트·창 모드·DPI 변경 |
 | `UGUIWindowMultipleInstanceSample` | 다중 인스턴스/풀링 시연용 빈 창 |
+| `UGUIWindowSwitcher` | 활성/최소화 창을 최근 포커스 순서로 보여주는 창 전환 오버레이 |
 
 ## 데스크톱과 아이콘
 
@@ -70,6 +72,17 @@ UGUIWindowManager.CreateWindow(targetWindowType);
 - **현재 설정 감지** — 열릴 때마다 `OnEnable`에서 현재 해상도/모드/DPI를 읽어 드롭다운을 선택 상태로 맞춥니다.
 - **적용** — `Screen.SetResolution`과 `UGUIWindowManager.SetDPI`를 호출해 해상도와 DPI를 동시에 반영합니다.
 
+## 창 전환 오버레이
+
+`UGUIWindowSwitcher`는 `UGUIDesktop` 시작 시 런타임 UI로 생성됩니다. 브라우저·운영체제 환경에서 Alt+Tab 입력을 보장하기 어렵기 때문에 기본 입력은 **Ctrl + Backquote**입니다.
+
+- `Ctrl + Backquote` → 전환 시작/다음 창 선택
+- `Ctrl + Shift + Backquote` → 반대 방향 선택
+- Ctrl 해제 → 선택된 창으로 전환
+- `Esc` → 전환 취소
+
+오버레이는 전용 `Canvas`의 최상단 정렬로 다른 창보다 앞에 표시되며, 반투명 배경 위에 창 아이콘들을 `HorizontalLayoutGroup`으로 배치하고, 현재 선택된 창의 제목을 표시합니다. 후보는 `UGUIWindowManager.GetSwitchableWindows()`에서 받아오므로 닫힌 창은 제외되고, 최소화된 창은 포함되며, 최근 포커스된 순서가 유지됩니다.
+
 ## 데모로 확인할 수 있는 것
 
 - 창 생성/풀링(같은 창을 닫았다 다시 열기)
@@ -77,6 +90,7 @@ UGUIWindowManager.CreateWindow(targetWindowType);
 - 기본 `UGUIWindow`의 본문 마스킹과 세로 스크롤(내용 최소 크기보다 작게 리사이즈)
 - 최대화/복원(버튼·더블클릭), 최소화
 - 포커스에 따른 z-순서 변화(클릭한 창이 최상단)
+- 창 전환 오버레이를 통한 활성/최소화 창 순환
 - DPI 변경 시 전체 UI 스케일 일괄 조정
 - ESC로 최상단 창 닫기
 

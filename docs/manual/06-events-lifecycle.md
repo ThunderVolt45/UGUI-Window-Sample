@@ -92,8 +92,9 @@ sequenceDiagram
 
 - **Cancel(ESC)** → 매니저의 `OnCancel`: 열린 창이 있으면 최상단 창을 닫고, 없으면 `defaultWindowOnEscape` 창을 생성합니다.
 - **Point(마우스 이동)** → `UGUICursorManager.OnPoint`: 커서 아래가 보더/엣지면 방향에 맞는 리사이즈 커서로 바꿉니다.
+- **Window Switcher(샘플)** → `UGUIWindowSwitcher`: `Ctrl + Backquote`로 전환 오버레이를 열고 다음 창을 선택합니다. `Ctrl + Shift + Backquote`는 반대 방향으로 이동하며, Ctrl을 놓으면 선택 창으로 전환합니다. Alt+Tab은 운영체제나 브라우저가 먼저 가로챌 수 있어 샘플 입력으로 쓰지 않습니다.
 
-이들은 `PlayerInput`의 메시지(`OnCancel`/`OnPoint`)로 호출됩니다.
+`Cancel`/`Point`는 `PlayerInput`의 메시지(`OnCancel`/`OnPoint`)로 호출됩니다. 샘플 전환 오버레이는 런타임 생성 컴포넌트가 Input System의 `Keyboard.current`를 직접 확인합니다.
 
 ## 다음으로
 
