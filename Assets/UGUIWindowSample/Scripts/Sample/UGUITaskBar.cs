@@ -58,6 +58,7 @@ namespace UGUIWindow
         private UGUIWindowManager subscribedManager;
         private RectTransform rectTransform;
         private bool isSubscribed;
+        private bool registeredMaximizedWindowArea;
 
         private void Awake()
         {
@@ -75,6 +76,7 @@ namespace UGUIWindow
 
         private void OnEnable()
         {
+            ConfigureTaskBarRect();
             SubscribeToManager();
             RebuildFromManager();
         }
@@ -82,6 +84,7 @@ namespace UGUIWindow
         private void OnDisable()
         {
             UnsubscribeFromManager();
+            ClearMaximizedWindowArea();
         }
 
         private void OnDestroy()
@@ -92,6 +95,8 @@ namespace UGUIWindow
             {
                 _instance = null;
             }
+
+            ClearMaximizedWindowArea();
         }
 
         public void AttachToDesktop(UGUIDesktop desktop)
@@ -319,6 +324,18 @@ namespace UGUIWindow
             UGUIWindowManager.Instance.SetMaximizedWindowOffsets(
                 new Vector2(0f, taskBarHeight),
                 Vector2.zero);
+            registeredMaximizedWindowArea = true;
+        }
+
+        private void ClearMaximizedWindowArea()
+        {
+            if (!registeredMaximizedWindowArea)
+            {
+                return;
+            }
+
+            UGUIWindowManager.Instance.ClearMaximizedWindowOffsets();
+            registeredMaximizedWindowArea = false;
         }
 
         private void RefreshItems(UGUIWindow focusedWindow)

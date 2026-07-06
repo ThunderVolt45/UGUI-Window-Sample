@@ -239,6 +239,11 @@ namespace UGUIWindow
                 window.RefreshMaximizedLayout();
             }
         }
+
+        public void ClearMaximizedWindowOffsets()
+        {
+            SetMaximizedWindowOffsets(Vector2.zero, Vector2.zero);
+        }
         #endregion
 
         #region Window - Create
