@@ -33,6 +33,8 @@ GameObject ▸ UGUI Window ▸ Create Window Templete
 
 `UGUIWindowView` + `UGUIWindow` 컴포넌트를 가진 빈 창 골격(`200×200`)을 만듭니다. 선택 중인 오브젝트가 있으면 그 자식으로 배치됩니다. 커스텀 창을 새로 만들 때 출발점으로 사용하세요.
 
+> 이 메뉴는 본문 스크롤용 `Content/Viewport/ScrollContent` 구조를 자동 생성하지 않습니다. 스크롤 가능한 창을 만들 때는 [03장: 본문 UI 배치와 스크롤](03-creating-windows.md#본문-ui-배치와-스크롤)을 참고해 Content 구조를 직접 만들거나 기본 `UGUIWindow.prefab`을 출발점으로 사용하세요.
+
 > 메뉴 이름의 "Templete"는 코드상의 철자 그대로입니다(`CreateWindowTemplete`).
 
 ## 인스펙터 버튼 (UGUIWindowView)

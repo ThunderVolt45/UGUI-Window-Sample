@@ -9,6 +9,7 @@
 - [창 생성 API](#창-생성-api)
 - [리소스 규약 (중요)](#리소스-규약-중요)
 - [커스텀 창 만들기 — 단계별](#커스텀-창-만들기--단계별)
+- [본문 UI 배치와 스크롤](#본문-ui-배치와-스크롤)
 - [같은 창을 여러 개 띄우기](#같은-창을-여러-개-띄우기)
 
 ---
@@ -112,7 +113,7 @@ public class MyWindow : UGUIWindow
 
 1. 빈 창 골격이 필요하면 메뉴 `GameObject ▸ UGUI Window ▸ Create Window Templete`로 `UGUIWindowView` + `UGUIWindow`를 가진 템플릿을 만듭니다.
 2. 템플릿에 헤더·보더·엣지를 붙이려면 인스펙터의 **Create & Assignment Base Components** 버튼을 사용합니다([05. 에디터 도구](05-editor-tools.md)).
-3. 컴포넌트를 `MyWindow`로 교체하고 본문 UI를 구성합니다.
+3. 컴포넌트를 `MyWindow`로 교체하고 본문 UI를 `Content/Viewport/ScrollContent` 아래에 구성합니다.
 4. 프리팹을 **`Assets/Resources/Windows/MyWindow.prefab`**으로 저장합니다(이름 일치 필수).
 
 ### 4단계. 생성
@@ -120,6 +121,25 @@ public class MyWindow : UGUIWindow
 ```csharp
 UGUIWindowManager.CreateWindow<MyWindow>();
 ```
+
+## 본문 UI 배치와 스크롤
+
+스크롤 가능한 창 본문은 다음 구조를 사용합니다.
+
+```text
+Content
+├─ Viewport
+│  └─ ScrollContent
+├─ VerticalScrollbar
+└─ HorizontalScrollbar
+```
+
+- 실제 버튼, 텍스트, 패널 등 창의 본문 UI는 `ScrollContent` 아래에 배치합니다.
+- `Content`에는 `UGUIWindowContent`와 `ScrollRect`가 붙어 있어야 합니다.
+- `Viewport`에는 `RectMask2D`가 붙어 있어, 내용이 창 바깥으로 그려지지 않습니다.
+- `enableVerticalScroll`은 기본으로 켜져 있고, `enableHorizontalScroll`은 기본으로 꺼져 있습니다.
+- 내용이 줄어들 수 있는 동안에는 스크롤바를 만들지 않고, `ScrollContent`의 최소 요구 크기보다 `Viewport`가 작아질 때만 해당 방향 스크롤바가 나타납니다.
+- 최소 요구 크기는 `LayoutElement.minWidth/minHeight`, LayoutGroup 계열의 min 값, 또는 `UGUIWindowContent.minimumContentSize`로 표현합니다.
 
 ## 같은 창을 여러 개 띄우기
 

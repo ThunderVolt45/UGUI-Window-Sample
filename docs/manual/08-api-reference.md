@@ -9,6 +9,7 @@
 - [UGUIWindowManager (정적 진입점)](#uguiwindowmanager-정적-진입점)
 - [UGUIWindow (개별 창)](#uguiwindow-개별-창)
 - [UGUIWindowView (뷰)](#uguiwindowview-뷰)
+- [UGUIWindowContent (본문 스크롤)](#uguiwindowcontent-본문-스크롤)
 - [열거형](#열거형)
 - [로깅 (UGUIWindowLog)](#로깅-uguiwindowlog)
 
@@ -110,6 +111,25 @@ RectTransform RectTransform { get; }
 ```
 
 대부분 `UGUIWindow`가 내부적으로 호출하므로 직접 쓸 일은 드뭅니다.
+
+## UGUIWindowContent (본문 스크롤)
+
+`Content` 오브젝트에 붙어 창 본문의 마스킹과 스크롤 상태를 관리합니다. 실제 본문 UI는 `Content/Viewport/ScrollContent` 아래에 배치합니다.
+
+```csharp
+bool enableHorizontalScroll   // 기본 false
+bool enableVerticalScroll     // 기본 true
+Vector2 minimumContentSize    // LayoutUtility min 값보다 큰 수동 최소 크기
+
+RectTransform viewport
+RectTransform scrollContent
+Scrollbar horizontalScrollbar
+Scrollbar verticalScrollbar
+
+void SetDirty()               // 다음 LateUpdate에서 스크롤 상태 재계산
+```
+
+스크롤바는 `ScrollContent`의 최소 요구 크기가 `Viewport`보다 커지는 축에서만 표시됩니다. 최소 요구 크기는 `LayoutElement`, LayoutGroup 계열, 또는 `minimumContentSize`로 지정합니다.
 
 ## 열거형
 

@@ -7,6 +7,7 @@
 **목차**
 
 - [창 한 개의 3분할: Controller / View / State](#창-한-개의-3분할-controller--view--state)
+- [본문 Content와 스크롤](#본문-content와-스크롤)
 - [중앙 관리자: UGUIWindowManager](#중앙-관리자-uguiwindowmanager)
 - [오브젝트 풀링](#오브젝트-풀링)
 - [z-순서: 이중 연결 리스트](#z-순서-이중-연결-리스트)
@@ -36,6 +37,23 @@ flowchart LR
 > **왜 나눴나?** 동작 로직(언제 최대화할지)과 렌더링 로직(어떻게 보일지)을 분리하면, 창의 외형을 바꿔도 컨트롤러를 건드리지 않아도 됩니다. 상태를 별도 객체(`UGUIWindowState`)로 떼어 둔 덕분에 "최대화 직전 상태"를 통째로 저장했다가 복원하는 일이 단순해집니다.
 
 상세 멤버는 [클래스 다이어그램: UGUIWindow](../class-diagram/UGUIWindow.md) 참고.
+
+## 본문 Content와 스크롤
+
+창의 본문 UI는 `Content/Viewport/ScrollContent` 아래에 배치합니다.
+
+```text
+UGUIWindow
+└─ Content
+   ├─ Viewport
+   │  └─ ScrollContent
+   ├─ VerticalScrollbar
+   └─ HorizontalScrollbar
+```
+
+`Content`에는 `UGUIWindowContent`가 붙어 있으며, 이 컴포넌트가 `ScrollRect`, `RectMask2D`, 스크롤바 표시 상태를 관리합니다. 기본값은 **세로 스크롤만 사용**이며, 가로 스크롤은 필요한 창에서 `enableHorizontalScroll`을 켜서 사용합니다.
+
+스크롤바는 창 크기가 내용의 선호 크기보다 작아지는 즉시 나타나지 않습니다. 먼저 `ScrollContent`가 `Viewport` 안에서 줄어들고, `LayoutUtility.GetMinWidth/Height`와 `minimumContentSize`로 계산한 최소 요구 크기보다 `Viewport`가 작아지는 축에서만 스크롤바가 표시됩니다. 따라서 최소 크기 기준이 필요한 UI는 `LayoutElement` 또는 LayoutGroup 계열 컴포넌트로 min 값을 표현하세요.
 
 ## 중앙 관리자: UGUIWindowManager
 
