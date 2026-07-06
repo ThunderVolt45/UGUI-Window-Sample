@@ -30,7 +30,7 @@ Assets/UGUIWindowSample/Scenes/UGUIWindowSampleScene.unity
 | `UGUIMenu` | 시작/메뉴 창. 설정 열기·종료 버튼 |
 | `UGUIApplicationSetting` | 설정 창. 해상도·프레임레이트·창 모드·DPI 변경 |
 | `UGUIWindowMultipleInstanceSample` | 다중 인스턴스/풀링 시연용 빈 창 |
-| `UGUIWindowSwitcher` | 활성/최소화 창을 최근 포커스 순서로 보여주는 창 전환 오버레이 |
+| `UGUIWindowSwitcher` | 활성/최소화 창을 최근 포커스 순서로 보여주는 프리팹 기반 창 전환 오버레이 |
 
 ## 데스크톱과 아이콘
 
@@ -74,14 +74,14 @@ UGUIWindowManager.CreateWindow(targetWindowType);
 
 ## 창 전환 오버레이
 
-`UGUIWindowSwitcher`는 `UGUIDesktop` 시작 시 런타임 UI로 생성됩니다. 브라우저·운영체제 환경에서 Alt+Tab 입력을 보장하기 어렵기 때문에 기본 입력은 **Ctrl + Backquote**입니다.
+`UGUIWindowSwitcher`는 `UGUIWindowManager` 시작 시 `Resources/Sample/UGUIWindowSwitcher.prefab`에서 로드되고 `MainCanvas` 최상단에 부착됩니다. 이 프리팹이 없으면 스위처를 코드로 대체 생성하지 않고 창 전환 기능을 비활성 상태로 둡니다. 브라우저·운영체제 환경에서 Alt+Tab 입력을 보장하기 어렵기 때문에 기본 입력은 **Ctrl + Backquote**입니다.
 
 - `Ctrl + Backquote` → 전환 시작/다음 창 선택
 - `Ctrl + Shift + Backquote` → 반대 방향 선택
 - Ctrl 해제 → 선택된 창으로 전환
 - `Esc` → 전환 취소
 
-오버레이는 전용 `Canvas`의 최상단 정렬로 다른 창보다 앞에 표시되며, 반투명 배경 위에 창 아이콘들을 `HorizontalLayoutGroup`으로 배치하고, 현재 선택된 창의 제목을 표시합니다. 후보는 `UGUIWindowManager.GetSwitchableWindows()`에서 받아오므로 닫힌 창은 제외되고, 최소화된 창은 포함되며, 최근 포커스된 순서가 유지됩니다.
+오버레이는 전용 `Canvas`의 최상단 정렬로 다른 창보다 앞에 표시되며, 반투명 배경 위에 창 아이콘들을 `HorizontalLayoutGroup`으로 배치하고, 현재 선택된 창의 제목을 표시합니다. `Panel`, `IconContainer`, `Title` 구조는 프리팹에서 수정할 수 있습니다. 후보는 `UGUIWindowManager.GetSwitchableWindows()`에서 받아오므로 닫힌 창은 제외되고, 최소화된 창은 포함되며, 최근 포커스된 순서가 유지됩니다.
 
 ## 데모로 확인할 수 있는 것
 

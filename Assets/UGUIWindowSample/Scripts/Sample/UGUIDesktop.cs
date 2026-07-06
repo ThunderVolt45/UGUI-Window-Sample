@@ -29,7 +29,6 @@ namespace UGUIWindow
             FindIconInTransformRecursion(transform);
             OnIconClicked.AddListener(DivertOtherIcon);
             UGUITaskBar.Instance.AttachToDesktop(this);
-            UGUIWindowSwitcher.Instance.AttachToDesktop(this);
 
             if (createDemoWindowsOnStart)
             {

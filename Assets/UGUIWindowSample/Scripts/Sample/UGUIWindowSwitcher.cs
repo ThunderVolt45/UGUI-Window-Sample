@@ -13,6 +13,8 @@ namespace UGUIWindow
     [RequireComponent(typeof(GraphicRaycaster))]
     public class UGUIWindowSwitcher : MonoBehaviour
     {
+        private const string PrefabResourcePath = "Sample/UGUIWindowSwitcher";
+
         private static UGUIWindowSwitcher _instance;
 
         public static UGUIWindowSwitcher Instance
@@ -26,21 +28,18 @@ namespace UGUIWindow
                     if (_instance != null)
                     {
                         _instance.gameObject.SetActive(true);
+                        return _instance;
                     }
-                    else
-                    {
-                        var switcherObject = new GameObject(
-                            "UGUIWindowSwitcher",
-                            typeof(RectTransform),
-                            typeof(Canvas),
-                            typeof(CanvasGroup),
-                            typeof(CanvasRenderer),
-                            typeof(Image),
-                            typeof(GraphicRaycaster),
-                            typeof(UGUIWindowSwitcher));
 
-                        _instance = switcherObject.GetComponent<UGUIWindowSwitcher>();
+                    var switcherPrefab = Resources.Load<UGUIWindowSwitcher>(PrefabResourcePath);
+                    if (switcherPrefab == null)
+                    {
+                        UGUIWindowLog.LogWarning($"UGUIWindowSwitcher prefab was not found at Resources/{PrefabResourcePath}.prefab.");
+                        return null;
                     }
+
+                    _instance = Instantiate(switcherPrefab);
+                    _instance.name = switcherPrefab.name;
                 }
 
                 return _instance;
@@ -59,6 +58,16 @@ namespace UGUIWindow
         [SerializeField] private float iconSpacing = 10f;
         [SerializeField] private int sortingOrder = short.MaxValue;
 
+        [Header("UI References")]
+        [SerializeField] private RectTransform iconContainer;
+        [SerializeField] private TMP_Text titleText;
+
+        [Header("Colors")]
+        [SerializeField] private Color overlayColor = new Color(0f, 0f, 0f, 0.45f);
+        [SerializeField] private Color normalItemColor = new Color(0.18f, 0.2f, 0.24f, 0.96f);
+        [SerializeField] private Color selectedItemColor = new Color(0.3f, 0.5f, 0.86f, 1f);
+        [SerializeField] private Color minimizedItemColor = new Color(0.12f, 0.13f, 0.16f, 0.9f);
+
         private readonly List<UGUIWindow> candidates = new();
         private readonly List<Image> itemBackgrounds = new();
         private readonly List<Image> itemIcons = new();
@@ -67,17 +76,10 @@ namespace UGUIWindow
         private UGUIWindowManager subscribedManager;
         private RectTransform rectTransform;
         private CanvasGroup canvasGroup;
-        private RectTransform iconContainer;
-        private TMP_Text titleText;
         private bool isSubscribed;
         private bool isSwitching;
         private int selectedIndex;
-
-        private readonly Color overlayColor = new Color(0f, 0f, 0f, 0.45f);
-        private readonly Color panelColor = new Color(0.08f, 0.09f, 0.11f, 0.92f);
-        private readonly Color normalItemColor = new Color(0.18f, 0.2f, 0.24f, 0.96f);
-        private readonly Color selectedItemColor = new Color(0.3f, 0.5f, 0.86f, 1f);
-        private readonly Color minimizedItemColor = new Color(0.12f, 0.13f, 0.16f, 0.9f);
+        private bool hasRequiredReferences;
 
         private void Awake()
         {
@@ -89,7 +91,7 @@ namespace UGUIWindow
 
             _instance = this;
             rectTransform = transform as RectTransform;
-            EnsureDefaultLayout();
+            InitializeFromPrefab();
             HideOverlay();
         }
 
@@ -153,14 +155,14 @@ namespace UGUIWindow
             }
         }
 
-        public void AttachToDesktop(UGUIDesktop desktop)
+        public void AttachTo(Transform parent)
         {
-            if (desktop == null)
+            if (parent == null)
             {
                 return;
             }
 
-            transform.SetParent(desktop.transform, false);
+            transform.SetParent(parent, false);
             ConfigureRootRect();
             ApplyTopMostCanvasOrder();
             transform.SetAsLastSibling();
@@ -203,6 +205,11 @@ namespace UGUIWindow
 
         private void BeginSwitch(int direction)
         {
+            if (!hasRequiredReferences)
+            {
+                return;
+            }
+
             RefreshCandidates(null);
             if (candidates.Count == 0)
             {
@@ -226,9 +233,10 @@ namespace UGUIWindow
             }
 
             isSwitching = true;
-            ShowOverlay();
             RebuildOverlayItems();
             RefreshSelection();
+            RefreshOverlayLayout();
+            ShowOverlay();
         }
 
         private void MoveSelection(int direction)
@@ -236,11 +244,13 @@ namespace UGUIWindow
             if (candidates.Count <= 1)
             {
                 RefreshSelection();
+                RefreshOverlayLayout();
                 return;
             }
 
             selectedIndex = WrapIndex(selectedIndex + direction, candidates.Count);
             RefreshSelection();
+            RefreshOverlayLayout();
         }
 
         private void CommitSwitch()
@@ -280,6 +290,7 @@ namespace UGUIWindow
 
             RebuildOverlayItems();
             RefreshSelection();
+            RefreshOverlayLayout();
         }
 
         private void RefreshCandidates(UGUIWindow preferredSelection)
@@ -320,13 +331,20 @@ namespace UGUIWindow
 
         private void RebuildOverlayItems()
         {
+            if (iconContainer == null)
+            {
+                return;
+            }
+
             itemBackgrounds.Clear();
             itemIcons.Clear();
             itemOutlines.Clear();
 
             for (int i = iconContainer.childCount - 1; i >= 0; i--)
             {
-                Destroy(iconContainer.GetChild(i).gameObject);
+                var child = iconContainer.GetChild(i);
+                child.gameObject.SetActive(false);
+                Destroy(child.gameObject);
             }
 
             foreach (var window in candidates)
@@ -415,7 +433,32 @@ namespace UGUIWindow
             }
         }
 
-        private void EnsureDefaultLayout()
+        private void RefreshOverlayLayout()
+        {
+            if (iconContainer == null)
+            {
+                return;
+            }
+
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(iconContainer);
+
+            var parentRect = iconContainer.parent as RectTransform;
+            while (parentRect != null && parentRect != rectTransform)
+            {
+                LayoutRebuilder.ForceRebuildLayoutImmediate(parentRect);
+                parentRect = parentRect.parent as RectTransform;
+            }
+
+            if (rectTransform != null)
+            {
+                LayoutRebuilder.ForceRebuildLayoutImmediate(rectTransform);
+            }
+
+            Canvas.ForceUpdateCanvases();
+        }
+
+        private void InitializeFromPrefab()
         {
             if (rectTransform == null)
             {
@@ -429,98 +472,33 @@ namespace UGUIWindow
             canvasGroup = GetComponent<CanvasGroup>();
 
             var background = GetComponent<Image>();
-            background.color = overlayColor;
-
-            if (iconContainer == null || titleText == null)
+            if (background != null)
             {
-                CreateOverlayContent();
+                background.color = overlayColor;
             }
+
+            hasRequiredReferences = ResolvePrefabReferences();
         }
 
-        private void CreateOverlayContent()
+        private bool ResolvePrefabReferences()
         {
-            var panelObject = new GameObject(
-                "Panel",
-                typeof(RectTransform),
-                typeof(CanvasRenderer),
-                typeof(Image),
-                typeof(VerticalLayoutGroup),
-                typeof(ContentSizeFitter));
+            if (iconContainer == null)
+            {
+                iconContainer = transform.Find("Panel/IconContainer") as RectTransform;
+            }
 
-            panelObject.transform.SetParent(transform, false);
+            if (titleText == null)
+            {
+                titleText = transform.Find("Panel/Title")?.GetComponent<TMP_Text>();
+            }
 
-            var panelRect = panelObject.transform as RectTransform;
-            panelRect.anchorMin = new Vector2(0.5f, 0.5f);
-            panelRect.anchorMax = new Vector2(0.5f, 0.5f);
-            panelRect.pivot = new Vector2(0.5f, 0.5f);
-            panelRect.anchoredPosition = Vector2.zero;
-            panelRect.sizeDelta = new Vector2(360f, 120f);
+            if (iconContainer != null && titleText != null)
+            {
+                return true;
+            }
 
-            var panelImage = panelObject.GetComponent<Image>();
-            panelImage.color = panelColor;
-
-            var panelLayout = panelObject.GetComponent<VerticalLayoutGroup>();
-            panelLayout.padding = new RectOffset(16, 16, 14, 14);
-            panelLayout.spacing = 12f;
-            panelLayout.childAlignment = TextAnchor.MiddleCenter;
-            panelLayout.childControlWidth = true;
-            panelLayout.childControlHeight = false;
-            panelLayout.childForceExpandWidth = false;
-            panelLayout.childForceExpandHeight = false;
-
-            var fitter = panelObject.GetComponent<ContentSizeFitter>();
-            fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
-            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-
-            iconContainer = CreateIconContainer(panelObject.transform);
-            titleText = CreateTitle(panelObject.transform);
-        }
-
-        private RectTransform CreateIconContainer(Transform parent)
-        {
-            var containerObject = new GameObject(
-                "IconContainer",
-                typeof(RectTransform),
-                typeof(HorizontalLayoutGroup),
-                typeof(ContentSizeFitter));
-
-            containerObject.transform.SetParent(parent, false);
-
-            var containerRect = containerObject.transform as RectTransform;
-            containerRect.sizeDelta = new Vector2(0f, iconSize);
-
-            var layout = containerObject.GetComponent<HorizontalLayoutGroup>();
-            layout.spacing = iconSpacing;
-            layout.childAlignment = TextAnchor.MiddleCenter;
-            layout.childControlWidth = false;
-            layout.childControlHeight = false;
-            layout.childForceExpandWidth = false;
-            layout.childForceExpandHeight = false;
-
-            var fitter = containerObject.GetComponent<ContentSizeFitter>();
-            fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
-            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-
-            return containerRect;
-        }
-
-        private TMP_Text CreateTitle(Transform parent)
-        {
-            var titleObject = new GameObject("Title", typeof(RectTransform));
-            titleObject.transform.SetParent(parent, false);
-
-            var titleRect = titleObject.transform as RectTransform;
-            titleRect.sizeDelta = new Vector2(320f, 28f);
-
-            var title = titleObject.AddComponent<TextMeshProUGUI>();
-            title.alignment = TextAlignmentOptions.Center;
-            title.color = Color.white;
-            title.fontSize = 18f;
-            title.raycastTarget = false;
-            title.overflowMode = TextOverflowModes.Ellipsis;
-            title.textWrappingMode = TextWrappingModes.NoWrap;
-
-            return title;
+            UGUIWindowLog.LogWarning($"{name} is missing IconContainer or Title references. Window switching overlay will be disabled.", this);
+            return false;
         }
 
         private void ConfigureRootRect()
@@ -540,6 +518,11 @@ namespace UGUIWindow
 
         private void ShowOverlay()
         {
+            if (canvasGroup == null)
+            {
+                return;
+            }
+
             ApplyTopMostCanvasOrder();
             canvasGroup.alpha = 1f;
             canvasGroup.interactable = true;
@@ -549,6 +532,11 @@ namespace UGUIWindow
 
         private void HideOverlay()
         {
+            if (canvasGroup == null)
+            {
+                return;
+            }
+
             canvasGroup.alpha = 0f;
             canvasGroup.interactable = false;
             canvasGroup.blocksRaycasts = false;

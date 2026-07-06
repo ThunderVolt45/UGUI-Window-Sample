@@ -83,6 +83,10 @@ namespace UGUIWindow
         [Tooltip("활성화된 Window가 없는 상태에서 Escape를 받았을 때 생성할 Window")]
         [SerializeField] private UGUIWindow defaultWindowOnEscape;
 
+        [Header("Window Switcher")]
+        [Tooltip("Window 전환 오버레이를 생성할지 여부")]
+        [SerializeField] private bool enableWindowSwitcher = true;
+
         [Header("Maximized Window Area")]
         [Tooltip("최대화된 Window가 부모 Rect의 왼쪽/아래쪽에서 띄울 여백")]
         [SerializeField] private Vector2 maximizedWindowOffsetMin = Vector2.zero;
@@ -125,6 +129,8 @@ namespace UGUIWindow
 
         // 생성된 윈도우가 저장된 오브젝트 풀
         private Dictionary<string, UGUIWindow> windowPool;
+
+        private UGUIWindowSwitcher windowSwitcher;
 
         public static float CurrentDPI
         {
@@ -222,6 +228,7 @@ namespace UGUIWindow
         {
             // 캔버스 초기화
             InitializeCanvas();
+            InitializeWindowSwitcher();
         }
 
         private void InitializeCanvas()
@@ -230,6 +237,22 @@ namespace UGUIWindow
             var dpi = PlayerPrefs.GetFloat("DPI Settings", 2f);
 
             SetDPI(currentResolution.width, currentResolution.height, dpi);
+        }
+
+        private void InitializeWindowSwitcher()
+        {
+            if (!enableWindowSwitcher || mainCanvasScaler == null)
+            {
+                return;
+            }
+
+            windowSwitcher = UGUIWindowSwitcher.Instance;
+            if (windowSwitcher == null)
+            {
+                return;
+            }
+
+            windowSwitcher.AttachTo(mainCanvasScaler.transform);
         }
         #endregion
 
