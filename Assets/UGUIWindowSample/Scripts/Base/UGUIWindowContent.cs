@@ -4,6 +4,7 @@ using UnityEngine.UI;
 
 namespace UGUIWindow
 {
+    [ExecuteAlways]
     [RequireComponent(typeof(ScrollRect))]
     public class UGUIWindowContent : MonoBehaviour, IPointerDownHandler
     {
@@ -11,6 +12,7 @@ namespace UGUIWindow
         [SerializeField] private bool enableHorizontalScroll = false;
         [SerializeField] private bool enableVerticalScroll = true;
         [SerializeField] private Vector2 minimumContentSize = Vector2.zero;
+        [SerializeField] private float scrollbarThickness = 12f;
 
         [Header("Scroll Components")]
         [SerializeField] private RectTransform viewport;
@@ -23,21 +25,19 @@ namespace UGUIWindow
         private ScrollRect scrollRect;
         private bool isDirty = true;
         private bool isApplyingLayout = false;
+        private bool hasLastRectSize = false;
+        private Vector2 lastRectSize;
 
         private const float OverflowEpsilon = 0.01f;
 
         private void Awake()
         {
-            parentWindow = GetComponentInParent<UGUIWindow>();
-            rectTransform = transform as RectTransform;
-            scrollRect = GetComponent<ScrollRect>();
-
-            ResolveMissingReferences();
-            ConfigureScrollRect();
+            EnsureInitialized();
         }
 
         private void OnEnable()
         {
+            EnsureInitialized();
             SetDirty();
         }
 
@@ -49,10 +49,30 @@ namespace UGUIWindow
             }
 
             SetDirty();
+
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+            {
+                RefreshScrollState();
+            }
+#endif
         }
 
         private void LateUpdate()
         {
+            EnsureInitialized();
+
+#if UNITY_EDITOR
+            if (!Application.isPlaying && rectTransform != null)
+            {
+                Vector2 currentRectSize = rectTransform.rect.size;
+                if (!hasLastRectSize || currentRectSize != lastRectSize)
+                {
+                    SetDirty();
+                }
+            }
+#endif
+
             if (!isDirty)
             {
                 return;
@@ -64,18 +84,7 @@ namespace UGUIWindow
 #if UNITY_EDITOR
         private void OnValidate()
         {
-            if (rectTransform == null)
-            {
-                rectTransform = transform as RectTransform;
-            }
-
-            if (scrollRect == null)
-            {
-                scrollRect = GetComponent<ScrollRect>();
-            }
-
-            ResolveMissingReferences();
-            ConfigureScrollRect();
+            EnsureInitialized();
             SetDirty();
         }
 #endif
@@ -102,6 +111,27 @@ namespace UGUIWindow
             scrollRect.movementType = ScrollRect.MovementType.Clamped;
             scrollRect.horizontalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
             scrollRect.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
+        }
+
+        private void EnsureInitialized()
+        {
+            if (parentWindow == null)
+            {
+                parentWindow = GetComponentInParent<UGUIWindow>();
+            }
+
+            if (rectTransform == null)
+            {
+                rectTransform = transform as RectTransform;
+            }
+
+            if (scrollRect == null)
+            {
+                scrollRect = GetComponent<ScrollRect>();
+            }
+
+            ResolveMissingReferences();
+            ConfigureScrollRect();
         }
 
         private void ResolveMissingReferences()
@@ -165,21 +195,24 @@ namespace UGUIWindow
 
         private void RefreshScrollState()
         {
-            isDirty = false;
+            EnsureInitialized();
 
             if (rectTransform == null || viewport == null || scrollContent == null || scrollRect == null)
             {
                 return;
             }
 
+            isDirty = false;
+            lastRectSize = rectTransform.rect.size;
+            hasLastRectSize = true;
             ConfigureScrollRect();
 
             LayoutRebuilder.ForceRebuildLayoutImmediate(scrollContent);
 
             Vector2 availableSize = rectTransform.rect.size;
             Vector2 requiredSize = GetRequiredContentSize();
-            float horizontalScrollbarHeight = GetScrollbarThickness(horizontalScrollbar, false);
-            float verticalScrollbarWidth = GetScrollbarThickness(verticalScrollbar, true);
+            float horizontalScrollbarHeight = GetScrollbarThickness(horizontalScrollbar);
+            float verticalScrollbarWidth = GetScrollbarThickness(verticalScrollbar);
             bool showHorizontalScrollbar = false;
             bool showVerticalScrollbar = false;
 
@@ -244,15 +277,14 @@ namespace UGUIWindow
             );
         }
 
-        private static float GetScrollbarThickness(Scrollbar scrollbar, bool isVertical)
+        private float GetScrollbarThickness(Scrollbar scrollbar)
         {
-            RectTransform scrollbarTransform = scrollbar != null ? scrollbar.transform as RectTransform : null;
-            if (scrollbarTransform == null)
+            if (scrollbar == null)
             {
                 return 0f;
             }
 
-            return isVertical ? scrollbarTransform.rect.width : scrollbarTransform.rect.height;
+            return Mathf.Max(0f, scrollbarThickness);
         }
 
         private void ApplyViewportLayout(bool hasHorizontalScrollbar, bool hasVerticalScrollbar, float horizontalScrollbarHeight, float verticalScrollbarWidth)
