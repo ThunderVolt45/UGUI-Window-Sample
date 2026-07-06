@@ -292,14 +292,7 @@ namespace UGUIWindow
             _prevWindowMode = _windowMode;
 #endif
 
-            float headerHeight = 0f;
-            if (view.windowHeader != null)
-            {
-                RectTransform headerTransform = view.windowHeader.transform as RectTransform;
-                headerHeight = headerTransform.anchoredPosition.y;
-            }
-
-            view.ApplyMaximizedState(headerHeight);
+            ApplyMaximizedLayout();
 
             HasBorder = false;
             isMovable = false;
@@ -351,6 +344,16 @@ namespace UGUIWindow
             Focus();
         }
 
+        public void RefreshMaximizedLayout()
+        {
+            if (_windowMode != UGUIWindowMode.Maximized)
+            {
+                return;
+            }
+
+            ApplyMaximizedLayout();
+        }
+
         public void Move(int x, int y)
         {
             RectTransform.anchoredPosition = new Vector2(x, y);
@@ -375,6 +378,21 @@ namespace UGUIWindow
         public void MemorizeLastWindowState()
         {
             _lastWindowState = new UGUIWindowState(this);
+        }
+
+        private void ApplyMaximizedLayout()
+        {
+            float headerHeight = 0f;
+            if (view.windowHeader != null)
+            {
+                RectTransform headerTransform = view.windowHeader.transform as RectTransform;
+                headerHeight = headerTransform.anchoredPosition.y;
+            }
+
+            Vector2 offsetMin = windowManager != null ? windowManager.MaximizedWindowOffsetMin : Vector2.zero;
+            Vector2 offsetMax = windowManager != null ? windowManager.MaximizedWindowOffsetMax : Vector2.zero;
+
+            view.ApplyMaximizedState(headerHeight, offsetMin, offsetMax);
         }
         #endregion
 

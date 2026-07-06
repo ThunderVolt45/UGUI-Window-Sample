@@ -315,6 +315,10 @@ namespace UGUIWindow
             rectTransform.pivot = new Vector2(0.5f, 0f);
             rectTransform.anchoredPosition = Vector2.zero;
             rectTransform.sizeDelta = new Vector2(0f, taskBarHeight);
+
+            UGUIWindowManager.Instance.SetMaximizedWindowOffsets(
+                new Vector2(0f, taskBarHeight),
+                Vector2.zero);
         }
 
         private void RefreshItems(UGUIWindow focusedWindow)

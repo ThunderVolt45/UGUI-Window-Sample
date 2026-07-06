@@ -65,6 +65,13 @@ namespace UGUIWindow
         [Tooltip("활성화된 Window가 없는 상태에서 Escape를 받았을 때 생성할 Window")]
         [SerializeField] private UGUIWindow defaultWindowOnEscape;
 
+        [Header("Maximized Window Area")]
+        [Tooltip("최대화된 Window가 부모 Rect의 왼쪽/아래쪽에서 띄울 여백")]
+        [SerializeField] private Vector2 maximizedWindowOffsetMin = Vector2.zero;
+
+        [Tooltip("최대화된 Window가 부모 Rect의 오른쪽/위쪽에서 띄울 여백")]
+        [SerializeField] private Vector2 maximizedWindowOffsetMax = Vector2.zero;
+
         [Header("Object Pool")]
         [Tooltip("Window가 최소화되었을 때 이동할 오브젝트의 CanvasScaler")]
         [SerializeField] private CanvasScaler minimizedObjectPool;
@@ -111,6 +118,16 @@ namespace UGUIWindow
         public float ScreenMultiplierHeight
         {
             get { return _screenMultiplierHeight; }
+        }
+
+        public Vector2 MaximizedWindowOffsetMin
+        {
+            get { return maximizedWindowOffsetMin; }
+        }
+
+        public Vector2 MaximizedWindowOffsetMax
+        {
+            get { return maximizedWindowOffsetMax; }
         }
 
         public IEnumerable<UGUIWindow> ManagedVisibleWindows
@@ -210,6 +227,17 @@ namespace UGUIWindow
 
             // DPI 설정이 바뀌었음을 알림
             OnDPIChanged?.Invoke(screenWidth, screenHeight, dpi);
+        }
+
+        public void SetMaximizedWindowOffsets(Vector2 offsetMin, Vector2 offsetMax)
+        {
+            maximizedWindowOffsetMin = offsetMin;
+            maximizedWindowOffsetMax = offsetMax;
+
+            foreach (var window in ManagedVisibleWindows)
+            {
+                window.RefreshMaximizedLayout();
+            }
         }
         #endregion
 

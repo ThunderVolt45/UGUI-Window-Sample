@@ -135,10 +135,15 @@ namespace UGUIWindow
 
         public void ApplyMaximizedState(float headerHeight)
         {
+            ApplyMaximizedState(headerHeight, Vector2.zero, Vector2.zero);
+        }
+
+        public void ApplyMaximizedState(float headerHeight, Vector2 offsetMin, Vector2 offsetMax)
+        {
             RectTransform.anchorMin = Vector2.zero;
             RectTransform.anchorMax = Vector2.one;
-            RectTransform.anchoredPosition = new Vector2(0, -headerHeight / 2);
-            RectTransform.sizeDelta = new Vector2(0, -headerHeight);
+            RectTransform.offsetMin = offsetMin;
+            RectTransform.offsetMax = offsetMax + new Vector2(0f, -headerHeight);
         }
 
         public void ApplyRestoredState(UGUIWindowState state)
