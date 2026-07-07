@@ -113,7 +113,7 @@ flowchart LR
 - 설정값은 `PlayerPrefs`("DPI Settings")에 저장되어 다음 실행에도 유지됩니다(기본 `2f` = 200%).
 - 변경 시 `OnDPIChanged` 이벤트가 발생해, 데스크톱 같은 외부 캔버스도 함께 스케일을 맞출 수 있습니다.
 
-드래그 이동/리사이즈가 DPI와 무관하게 일관된 속도로 동작하도록, 매니저는 `ScreenMultiplierWidth/Height`(= referenceResolution / screen)를 제공하고 헤더·보더·엣지가 포인터 델타에 이를 곱해 보정합니다.
+드래그 이동/리사이즈가 DPI와 무관하게 일관된 속도로 동작하도록, 헤더·보더·엣지는 포인터의 이전/현재 screen point를 창 부모 `RectTransform`의 로컬 좌표로 변환한 차이를 사용합니다. 이 방식은 DPI뿐 아니라 에디터 Game 뷰 Scale, WebGL 캔버스 스케일처럼 화면 픽셀과 캔버스 좌표가 달라지는 환경도 함께 처리합니다. 변환에 실패하는 드문 경우에는 매니저의 `ScreenMultiplierWidth/Height`(= referenceResolution / screen)를 곱한 기존 보정값으로 되돌아갑니다.
 
 ## 로깅
 

@@ -50,7 +50,7 @@ window.HasMaximizeButton = true;
 - **이동**(`isMovable`) — 헤더를 드래그하면 창이 따라옵니다. 헤더가 없으면 이동 수단이 없습니다.
 - **리사이즈**(`isResizable`) — 보더(한 축)/엣지(두 축)를 드래그해 크기를 조절합니다. `minimumWindowSize` 미만으로는 줄어들지 않습니다.
 
-드래그 이동/리사이즈는 DPI 보정(`ScreenMultiplier`)이 적용되어 해상도와 무관하게 일관되게 움직입니다([02장](02-concepts.md) 참고).
+드래그 이동/리사이즈는 포인터 위치를 캔버스 로컬 좌표로 변환해 계산하므로 해상도와 DPI, Game 뷰 Scale, WebGL 캔버스 스케일과 무관하게 일관되게 움직입니다([02장](02-concepts.md) 참고).
 
 코드로 직접 옮기거나 크기를 바꿀 수도 있습니다.
 

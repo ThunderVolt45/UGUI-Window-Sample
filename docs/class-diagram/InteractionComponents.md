@@ -111,7 +111,7 @@ classDiagram
 
 ## 컴포넌트별 메모
 
-- **`UGUIWindowHeader`** — 타이틀과 종료/최대화/최소화 버튼을 보유. 드래그로 창을 이동시키고, 더블클릭(`OnPointerClick`, `clickCount == 2`)으로 최대화↔복원합니다. 드래그 델타에 `ScreenMultiplier`를 곱해 DPI 보정합니다.
+- **`UGUIWindowHeader`** — 타이틀과 종료/최대화/최소화 버튼을 보유. 드래그로 창을 이동시키고, 더블클릭(`OnPointerClick`, `clickCount == 2`)으로 최대화↔복원합니다. 드래그 델타는 `UGUIWindowManager.GetPointerDeltaInRect`로 부모 `RectTransform` 로컬 좌표에 맞춰 계산합니다.
 - **`UGUIWindowBorder`** — 4방향(`borderPosition`) 변을 드래그해 한 축 크기를 조절. `minimumWindowSize` 미만으로 줄어들지 않도록 제한합니다.
 - **`UGUIWindowEdge`** — 4모서리(`edgePosition`)를 드래그해 두 축을 동시에 조절. 로직은 Border와 동일한 패턴입니다.
 - **`UGUIWindowContent`** — 본문 클릭 시 `parentWindow.Focus()`만 호출하는 최소 컴포넌트.

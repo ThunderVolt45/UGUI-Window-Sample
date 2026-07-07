@@ -55,10 +55,8 @@ namespace UGUIWindow
             // 드래그 중이 아니라면 처리하지 않는다
             if (!isDragging) return;
 
-            Vector2 pointerDelta = new Vector2(
-                eventData.delta.x * windowManager.ScreenMultiplierWidth,
-                eventData.delta.y * windowManager.ScreenMultiplierHeight
-            );
+            RectTransform parentTransform = windowTransform.parent as RectTransform;
+            Vector2 pointerDelta = windowManager.GetPointerDeltaInRect(eventData, parentTransform);
 
             // 윈도우의 크기를 조절한다. 이 때 윈도우가 최소 크기보다 작아지지 않도록 처리한다.
             switch (borderPosition)

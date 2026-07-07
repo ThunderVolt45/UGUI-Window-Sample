@@ -41,6 +41,8 @@ IReadOnlyList<UGUIWindow> GetSwitchableWindows()                    // 최근 �
 UGUIWindow   GetFocusedWindow()                                     // MainCanvas의 마지막 활성 Window
 void         FocusWindow(UGUIWindow window)                         // 최소화 복원 포함 포커스
 void         TrimWindow()                                          // 비활성 풀의 창을 파괴
+Vector2      GetPointerDeltaInRect(PointerEventData eventData,
+                                   RectTransform relativeTo)        // 포인터 델타를 RectTransform 로컬 좌표로 변환
 float        ScreenMultiplierWidth { get; }                        // 드래그 DPI 보정 계수
 float        ScreenMultiplierHeight { get; }
 UnityEvent<int,int,float> OnDPIChanged                             // DPI 변경 알림

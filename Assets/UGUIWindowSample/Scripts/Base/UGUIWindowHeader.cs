@@ -112,10 +112,8 @@ namespace UGUIWindow
             // 움직일 수 없는 창이라면 처리하지 않는다
             if (!parentWindow.isMovable) return;
 
-            Vector2 pointerDelta = new Vector2(
-                eventData.delta.x * windowManager.ScreenMultiplierWidth,
-                eventData.delta.y * windowManager.ScreenMultiplierHeight
-            );
+            RectTransform parentTransform = windowTransform.parent as RectTransform;
+            Vector2 pointerDelta = windowManager.GetPointerDeltaInRect(eventData, parentTransform);
 
             windowTransform.anchoredPosition += pointerDelta;
         }

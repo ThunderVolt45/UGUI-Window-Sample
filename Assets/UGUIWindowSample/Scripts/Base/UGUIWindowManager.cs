@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
@@ -149,6 +150,40 @@ namespace UGUIWindow
         public float ScreenMultiplierHeight
         {
             get { return _screenMultiplierHeight; }
+        }
+
+        public Vector2 GetPointerDeltaInRect(PointerEventData eventData, RectTransform relativeTo)
+        {
+            if (eventData == null || relativeTo == null)
+            {
+                return Vector2.zero;
+            }
+
+            Vector2 currentPosition;
+            Vector2 previousPosition;
+            Camera eventCamera = eventData.pressEventCamera != null
+                ? eventData.pressEventCamera
+                : eventData.enterEventCamera;
+            Vector2 previousScreenPosition = eventData.position - eventData.delta;
+
+            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    relativeTo,
+                    eventData.position,
+                    eventCamera,
+                    out currentPosition)
+                && RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    relativeTo,
+                    previousScreenPosition,
+                    eventCamera,
+                    out previousPosition))
+            {
+                return currentPosition - previousPosition;
+            }
+
+            return new Vector2(
+                eventData.delta.x * ScreenMultiplierWidth,
+                eventData.delta.y * ScreenMultiplierHeight
+            );
         }
 
         public Vector2 MaximizedWindowOffsetMin

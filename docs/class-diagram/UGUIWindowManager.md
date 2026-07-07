@@ -26,6 +26,7 @@ classDiagram
         -DoublyLinkedList~UGUIWindow~ currentlyOpenedWindows
         -LinkedList~UGUIWindow~ recentlyFocusedWindows
         -Dictionary~string,UGUIWindow~ windowPool
+        +GetPointerDeltaInRect(PointerEventData, RectTransform) Vector2
         +float ScreenMultiplierWidth
         +float ScreenMultiplierHeight
         -Awake()
@@ -70,7 +71,7 @@ classDiagram
 - **창 전환 조회**: `GetOpenWindows`/`GetVisibleWindows`는 현재 계층에서 활성 창을 다시 수집합니다. `GetSwitchableWindows`는 이 결과를 `recentlyFocusedWindows` 기준으로 정렬해 최소화된 창까지 포함합니다.
 - **창 전환 오버레이**: `enableWindowSwitcher`가 켜져 있으면 시작 시 `UGUIWindowSwitcher` 프리팹을 로드해 `MainCanvas` 최상단에 부착합니다. 프리팹이 없으면 코드로 대체 생성하지 않습니다.
 - **오브젝트 풀**: 닫힌 창은 `disabledObjectPool`, 최소화된 창은 `minimizedObjectPool`로 부모를 옮겨 보관합니다. `allowMultipleInstance` 창은 풀링하지 않습니다.
-- **DPI / 메모리**: `SetDPI`는 CanvasScaler 해상도를 조정하고 `PlayerPrefs`에 저장합니다. `Application.lowMemory` 시 `TrimWindow`로 미사용 창을 파괴합니다.
+- **DPI / 메모리**: `SetDPI`는 CanvasScaler 해상도를 조정하고 `PlayerPrefs`에 저장합니다. 드래그 델타는 `GetPointerDeltaInRect`로 포인터 위치를 부모 `RectTransform` 로컬 좌표에 맞춰 계산합니다. `Application.lowMemory` 시 `TrimWindow`로 미사용 창을 파괴합니다.
 - **입력**: `OnCancel`(ESC)은 열린 창이 있으면 최상단 창을 닫고, 없으면 `defaultWindowOnEscape`를 생성합니다.
 
 ## 관련 문서
