@@ -25,6 +25,12 @@ classDiagram
         Minimized
     }
 
+    class UGUIWindowLayoutMode {
+        <<enumeration>>
+        Windowed
+        Maximized
+    }
+
     class UGUIWindow {
         <<MonoBehaviour>>
         -UGUIWindowMode _windowMode
@@ -43,7 +49,9 @@ classDiagram
         +UnityEvent~UGUIWindow~ OnMinimizeWindow
         -UGUIWindowManager windowManager
         -UGUIWindowView view
-        -UGUIWindowState _lastWindowState
+        -UGUIWindowLayoutMode _layoutMode
+        -bool _isMinimized
+        -UGUIWindowState _windowedRestoreState
         +UGUIWindowMode WindowMode
         +bool HasHeader
         +bool HasBorder
@@ -61,6 +69,7 @@ classDiagram
         +Maximize()
         +RestoreWindow()
         +Minimize()
+        +RestoreFromMinimized()
         +Move(int x, int y)
         +Resize(int w, int h)
         +SetAnchor(Vector2, Vector2)
@@ -103,6 +112,7 @@ classDiagram
 
     UGUIWindow ..|> IPointerDownHandler
     UGUIWindow ..> UGUIWindowMode
+    UGUIWindow ..> UGUIWindowLayoutMode
     UGUIWindow *-- UGUIWindowView : RequireComponent
     UGUIWindow ..> UGUIWindowState : 생성/복원
     UGUIWindowView ..> UGUIWindowState : 적용
@@ -112,7 +122,8 @@ classDiagram
 
 - `UGUIWindow`는 `[RequireComponent(typeof(UGUIWindowView))]`로 뷰를 강제 보유하며, 모든 시각/레이아웃 변경을 `view`에 위임합니다.
 - 모드 변경(`WindowMode` 프로퍼티)은 `ChangeWindowMode`를 통해 `Maximize`/`RestoreWindow`/`Minimize`로 분기됩니다.
-- `Maximize` 직전 상태는 `_lastWindowState`(`UGUIWindowState`)에 저장되고, `RestoreWindow`에서 `ApplyRestoredState`로 복원됩니다.
+- 기본 창 레이아웃은 `_windowedRestoreState`(`UGUIWindowState`)에 저장되고, `RestoreWindow`에서 `ApplyRestoredState`로 복원됩니다.
+- `_layoutMode`는 `Windowed`/`Maximized`를, `_isMinimized`는 최소화 여부를 독립적으로 관리합니다. `WindowMode`는 두 값을 기존 public enum으로 합쳐 반환합니다.
 - 이동/리사이즈/앵커 변경(`Move`/`Resize`/`SetAnchor`)은 모두 `MemorizeLastWindowState`로 마지막 상태를 갱신합니다.
 - `Close`는 `Fade` 애니메이션을 `await`한 뒤 비활성화하며, 풀링 미사용/다중 인스턴스 창이면 `Destroy`합니다.
 

@@ -17,6 +17,12 @@ namespace UGUIWindow
     [RequireComponent(typeof(UGUIWindowView))]
     public class UGUIWindow : MonoBehaviour, IPointerDownHandler
     {
+        private enum UGUIWindowLayoutMode
+        {
+            Windowed,
+            Maximized
+        }
+
         #region Inspector Fields
         [Header("Window Mode")]
         [SerializeField] private UGUIWindowMode _windowMode = UGUIWindowMode.Windowed;
@@ -71,10 +77,20 @@ namespace UGUIWindow
         #region Properties
         public UGUIWindowMode WindowMode
         {
-            get { return _windowMode; }
+            get
+            {
+                if (_isMinimized)
+                {
+                    return UGUIWindowMode.Minimized;
+                }
+
+                return _layoutMode == UGUIWindowLayoutMode.Maximized
+                    ? UGUIWindowMode.Maximized
+                    : UGUIWindowMode.Windowed;
+            }
             set
             {
-                if (_windowMode != value)
+                if (WindowMode != value)
                 {
                     ChangeWindowMode(value);
                 }
@@ -156,7 +172,9 @@ namespace UGUIWindow
         private bool _prevHasMaximizeButtonState;
 #endif
 
-        private UGUIWindowState _lastWindowState;
+        private UGUIWindowLayoutMode _layoutMode = UGUIWindowLayoutMode.Windowed;
+        private bool _isMinimized;
+        private UGUIWindowState _windowedRestoreState;
         #endregion
 
         #region Initialize
@@ -164,13 +182,14 @@ namespace UGUIWindow
         {
             windowManager = UGUIWindowManager.Instance;
             view = GetComponent<UGUIWindowView>();
+            InitializeRuntimeWindowMode();
 
             view.SetHeaderActive(_hasHeader);
             view.SetBorderActive(_hasBorder);
             view.SetExitButtonActive(_hasExitButton);
             view.SetMaximizeButtonActive(_hasMaximizeButton);
 
-            _lastWindowState = new UGUIWindowState(this);
+            _windowedRestoreState = new UGUIWindowState(this);
 #if UNITY_EDITOR
             _prevWindowMode = _windowMode;
             _prevHasHeaderState = _hasHeader;
@@ -290,10 +309,9 @@ namespace UGUIWindow
                 return;
             }
 
-            _windowMode = UGUIWindowMode.Maximized;
-#if UNITY_EDITOR
-            _prevWindowMode = _windowMode;
-#endif
+            _layoutMode = UGUIWindowLayoutMode.Maximized;
+            _isMinimized = false;
+            SynchronizeWindowMode();
 
             ApplyMaximizedLayout();
 
@@ -311,45 +329,46 @@ namespace UGUIWindow
                 return;
             }
 
-            _windowMode = UGUIWindowMode.Windowed;
-#if UNITY_EDITOR
-            _prevWindowMode = _windowMode;
-#endif
+            _layoutMode = UGUIWindowLayoutMode.Windowed;
+            _isMinimized = false;
+            SynchronizeWindowMode();
 
-            view.ApplyRestoredState(_lastWindowState);
+            view.ApplyRestoredState(_windowedRestoreState);
 
-            HasBorder = _lastWindowState.hasBorder;
-            isMovable = _lastWindowState.isMovable;
+            HasBorder = _windowedRestoreState.hasBorder;
+            isMovable = _windowedRestoreState.isMovable;
         }
 
         public void Minimize()
         {
-            _windowMode = UGUIWindowMode.Minimized;
-#if UNITY_EDITOR
-            _prevWindowMode = _windowMode;
-#endif
+            _isMinimized = true;
+            SynchronizeWindowMode();
             OnMinimizeWindow?.Invoke(this);
         }
 
         public void RestoreFromMinimized()
         {
-            if (_windowMode != UGUIWindowMode.Minimized)
+            if (!_isMinimized)
             {
                 Focus();
                 return;
             }
 
-            _windowMode = UGUIWindowMode.Windowed;
-#if UNITY_EDITOR
-            _prevWindowMode = _windowMode;
-#endif
+            _isMinimized = false;
+            SynchronizeWindowMode();
             Open();
+
+            if (_layoutMode == UGUIWindowLayoutMode.Maximized)
+            {
+                ApplyMaximizedLayout();
+            }
+
             Focus();
         }
 
         public void RefreshMaximizedLayout()
         {
-            if (_windowMode != UGUIWindowMode.Maximized)
+            if (_isMinimized || _layoutMode != UGUIWindowLayoutMode.Maximized)
             {
                 return;
             }
@@ -380,7 +399,23 @@ namespace UGUIWindow
         #region Window - Etc
         public void MemorizeLastWindowState()
         {
-            _lastWindowState = new UGUIWindowState(this);
+            _windowedRestoreState = new UGUIWindowState(this);
+        }
+
+        private void InitializeRuntimeWindowMode()
+        {
+            _layoutMode = _windowMode == UGUIWindowMode.Maximized
+                ? UGUIWindowLayoutMode.Maximized
+                : UGUIWindowLayoutMode.Windowed;
+            _isMinimized = _windowMode == UGUIWindowMode.Minimized;
+        }
+
+        private void SynchronizeWindowMode()
+        {
+            _windowMode = WindowMode;
+#if UNITY_EDITOR
+            _prevWindowMode = _windowMode;
+#endif
         }
 
         private void ApplyMaximizedLayout()

@@ -60,6 +60,7 @@ void Minimize()                              // 최소화 (+ OnMinimizeWindow)
 void Maximize()                              // 최대화 (isResizable 필요)
 void RestoreWindow()                         // 복원 (isResizable 필요)
 void ChangeWindowMode(UGUIWindowMode mode)   // 모드 전환 분기
+void RestoreFromMinimized()                  // 최소화 해제 및 기존 레이아웃 모드 복원
 void Move(int x, int y)                       // 위치 설정 (+ 상태 기억)
 void Resize(int width, int height)            // 크기 설정 (+ 상태 기억)
 void SetAnchor(Vector2 anchorMin, Vector2 anchorMax) // 앵커 설정 (+ 상태 기억)
@@ -70,7 +71,7 @@ void MemorizeLastWindowState()               // 현재 상태 스냅샷 저장
 ### 프로퍼티 / 필드
 
 ```csharp
-UGUIWindowMode WindowMode { get; set; }      // 설정 시 모드 전환 발생
+UGUIWindowMode WindowMode { get; set; }      // 레이아웃 모드와 최소화 상태를 합친 현재 모드
 bool HasHeader { get; set; }
 bool HasBorder { get; set; }
 bool HasExitButton { get; set; }

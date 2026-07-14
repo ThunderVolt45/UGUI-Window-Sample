@@ -24,7 +24,7 @@
 | --- | --- | --- |
 | **Controller** | `UGUIWindow` | 모드 전환, 열기/닫기, 이동/리사이즈 등 *동작*과 옵션을 보유 |
 | **View** | `UGUIWindowView` | 헤더·보더·엣지 활성화, Fade 애니메이션, 레이아웃 *적용* |
-| **State** | `UGUIWindowState` | 위치·크기·플래그의 *스냅샷* (최대화↔복원에 사용) |
+| **State** | `UGUIWindowState` | 기본 창의 위치·크기·플래그 *스냅샷* (최대화↔복원에 사용) |
 
 `UGUIWindow`는 `[RequireComponent(typeof(UGUIWindowView))]`로 View를 강제 보유하며, 모든 시각/레이아웃 변경을 View에 위임합니다.
 
@@ -34,7 +34,7 @@ flowchart LR
     Controller -->|스냅샷| State["UGUIWindowState<br/>(위치·크기 기억)"]
 ```
 
-> **왜 나눴나?** 동작 로직(언제 최대화할지)과 렌더링 로직(어떻게 보일지)을 분리하면, 창의 외형을 바꿔도 컨트롤러를 건드리지 않아도 됩니다. 상태를 별도 객체(`UGUIWindowState`)로 떼어 둔 덕분에 "최대화 직전 상태"를 통째로 저장했다가 복원하는 일이 단순해집니다.
+> **왜 나눴나?** 동작 로직(언제 최대화할지)과 렌더링 로직(어떻게 보일지)을 분리하면, 창의 외형을 바꿔도 컨트롤러를 건드리지 않아도 됩니다. 상태를 별도 객체(`UGUIWindowState`)로 떼어 둔 덕분에 기본 창 레이아웃을 저장했다가 최대화 해제 시 복원하는 일이 단순해집니다. 최소화 여부는 레이아웃 모드(`Windowed`/`Maximized`)와 별도로 관리하므로 최대화된 창을 최소화해도 원래 레이아웃 모드를 잃지 않습니다.
 
 상세 멤버는 [클래스 다이어그램: UGUIWindow](../class-diagram/UGUIWindow.md) 참고.
 

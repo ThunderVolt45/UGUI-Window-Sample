@@ -71,7 +71,7 @@ sequenceDiagram
 
 ### 최소화 (Minimize)
 
-`Minimize()`는 모드를 `Minimized`로 바꾸고 `OnMinimizeWindow`를 발생시킵니다. 매니저는 창을 열린 목록에서 빼고 **최소화 풀**로 이동시킵니다(파괴하지 않음).
+`Minimize()`는 현재 레이아웃 모드(`Windowed` 또는 `Maximized`)를 유지한 채 최소화 상태를 켜고 `OnMinimizeWindow`를 발생시킵니다. 매니저는 창을 열린 목록에서 빼고 **최소화 풀**로 이동시킵니다(파괴하지 않음). `RestoreFromMinimized()`를 호출하면 최소화 상태만 해제하므로 기존 레이아웃 모드가 그대로 드러나며, 최대화 창은 메인 캔버스 기준으로 레이아웃을 다시 적용합니다.
 
 ### 닫기 (Close)
 
