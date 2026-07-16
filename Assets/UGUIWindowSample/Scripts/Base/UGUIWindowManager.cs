@@ -887,6 +887,14 @@ namespace UGUIWindow
             }
 
             // 열려있는 윈도우가 없다면
+            if (defaultWindowOnEscape == null)
+            {
+                UGUIWindowLog.LogWarning(
+                    $"{nameof(defaultWindowOnEscape)}가 지정되지 않아 Escape로 열 기본 Window가 없습니다. " +
+                    $"{nameof(UGUIWindowManager)} 프리팹에서 지정하세요.", this);
+                return;
+            }
+
             CreateWindow(defaultWindowOnEscape.GetType());
         }
         #endregion
