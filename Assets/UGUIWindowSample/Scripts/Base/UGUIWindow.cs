@@ -11,7 +11,10 @@ namespace UGUIWindow
     {
         Windowed,
         Maximized,
-        Minimized
+        Minimized,
+
+        // 기존 프리팹에 직렬화된 값이 밀리지 않도록 반드시 끝에 추가할 것.
+        FullScreen
     }
 
     [RequireComponent(typeof(UGUIWindowView))]
@@ -20,7 +23,8 @@ namespace UGUIWindow
         private enum UGUIWindowLayoutMode
         {
             Windowed,
-            Maximized
+            Maximized,
+            FullScreen
         }
 
         #region Inspector Fields
@@ -59,6 +63,15 @@ namespace UGUIWindow
         [Tooltip("작업 표시줄 등에 표시할 윈도우 아이콘")]
         [SerializeField] private Sprite windowIcon;
 
+        [Header("FullScreen Settings")]
+        [Space(3f)]
+        [Tooltip("전체화면일 때 화면 위쪽 이 범위 안으로 포인터가 들어오면 헤더가 내려옵니다. " +
+                 "캔버스 단위가 아니라 실제 화면 픽셀이라, 화면 배율이나 창 크기가 바뀌어도 손에 잡히는 폭은 같습니다.")]
+        [SerializeField] private float fullScreenHeaderRevealZonePixels = 32f;
+
+        [Tooltip("전체화면일 때 헤더가 미끄러지는 속도. 클수록 빠릅니다.")]
+        [SerializeField] private float fullScreenHeaderRevealSpeed = 14f;
+
         [Header("Window Events")]
         [Space(5f)]
         [Tooltip("윈도우가 열릴 때 호출할 이벤트")]
@@ -84,9 +97,15 @@ namespace UGUIWindow
                     return UGUIWindowMode.Minimized;
                 }
 
-                return _layoutMode == UGUIWindowLayoutMode.Maximized
-                    ? UGUIWindowMode.Maximized
-                    : UGUIWindowMode.Windowed;
+                switch (_layoutMode)
+                {
+                    case UGUIWindowLayoutMode.Maximized:
+                        return UGUIWindowMode.Maximized;
+                    case UGUIWindowLayoutMode.FullScreen:
+                        return UGUIWindowMode.FullScreen;
+                    default:
+                        return UGUIWindowMode.Windowed;
+                }
             }
             set
             {
@@ -175,6 +194,38 @@ namespace UGUIWindow
         private UGUIWindowLayoutMode _layoutMode = UGUIWindowLayoutMode.Windowed;
         private bool _isMinimized;
         private UGUIWindowState _windowedRestoreState;
+
+        // 전체화면을 빠져나올 때 돌아갈 레이아웃(확대였는지 창 모드였는지)
+        private UGUIWindowLayoutMode _layoutModeBeforeFullScreen = UGUIWindowLayoutMode.Windowed;
+
+        // 전체화면 진입 전 헤더의 세로 위치. 헤더를 화면 밖으로 밀어냈다가 되돌리는 데 쓴다.
+        private float _headerAnchoredYBeforeFullScreen;
+
+        // 0 = 헤더가 화면 위로 완전히 숨음, 1 = 헤더가 콘텐츠 위에 완전히 내려옴
+        private float _headerRevealProgress;
+
+        // 감지 범위를 실제 픽셀에서 캔버스 단위로 바꿀 때 필요. 매 프레임 탐색하지 않도록 캐싱한다.
+        private Canvas _cachedCanvas;
+
+        private float PixelsToCanvasUnits(float pixels)
+        {
+            if (_cachedCanvas == null)
+            {
+                _cachedCanvas = GetComponentInParent<Canvas>();
+            }
+
+            return UGUIWindowManager.PixelsToCanvasUnits(pixels, _cachedCanvas);
+        }
+
+        private RectTransform HeaderRectTransform
+        {
+            get
+            {
+                return view != null && view.windowHeader != null
+                    ? view.windowHeader.transform as RectTransform
+                    : null;
+            }
+        }
         #endregion
 
         #region Initialize
@@ -190,6 +241,23 @@ namespace UGUIWindow
             view.SetMaximizeButtonActive(_hasMaximizeButton);
 
             _windowedRestoreState = new UGUIWindowState(this);
+
+            // 프리팹이 전체화면 상태로 저장된 경우: 매니저 점유와 레이아웃을 여기서 맞춰준다.
+            // (_windowedRestoreState를 잡은 뒤여야 복원할 창 크기가 남는다.)
+            if (_layoutMode == UGUIWindowLayoutMode.FullScreen)
+            {
+                _headerAnchoredYBeforeFullScreen = HeaderRectTransform != null
+                    ? HeaderRectTransform.anchoredPosition.y
+                    : 0f;
+                _headerRevealProgress = 0f;
+                ApplyHeaderReveal();
+                ApplyFullScreenLayout();
+
+                if (windowManager != null)
+                {
+                    windowManager.SetFullScreenWindow(this);
+                }
+            }
 #if UNITY_EDITOR
             _prevWindowMode = _windowMode;
             _prevHasHeaderState = _hasHeader;
@@ -202,6 +270,16 @@ namespace UGUIWindow
         protected virtual void OnEnable()
         {
             _ = view.Fade(0f, 1f, 0.9f, 1f);
+        }
+
+        protected virtual void Update()
+        {
+            if (_isMinimized || _layoutMode != UGUIWindowLayoutMode.FullScreen)
+            {
+                return;
+            }
+
+            UpdateHeaderReveal();
         }
         #endregion
 
@@ -267,6 +345,12 @@ namespace UGUIWindow
             OnCloseWindow?.Invoke(this);
 
             await view.Fade(1f, 0f, 1f, 0.9f);
+
+            // 전체화면 점유를 반납하지 않고 닫으면 도크가 숨은 채로 남고,
+            // 풀에서 다시 꺼냈을 때도 전체화면 상태가 따라온다.
+            // 페이드가 끝난 뒤에 해제해야 창이 작게 줄었다가 사라지는 것처럼 보이지 않는다.
+            ExitFullScreen();
+
             view.SetActive(false);
 
             if (allowMultipleInstance || !useObjectPooling)
@@ -292,6 +376,10 @@ namespace UGUIWindow
                     Maximize();
                     Open();
                     break;
+                case UGUIWindowMode.FullScreen:
+                    EnterFullScreen();
+                    Open();
+                    break;
                 case UGUIWindowMode.Minimized:
                     Minimize();
                     break;
@@ -301,6 +389,10 @@ namespace UGUIWindow
             }
         }
 
+        /// <summary>
+        /// macOS의 '확대(zoom)'에 해당한다. 도크 등이 예약한 여백을 뺀 사용 가능 영역만 채우고
+        /// 헤더는 그대로 남는다.
+        /// </summary>
         public void Maximize()
         {
             if (!isResizable)
@@ -308,6 +400,8 @@ namespace UGUIWindow
                 UGUIWindowLog.LogError($"This Window {GetType()} cannot be resized!");
                 return;
             }
+
+            LeaveFullScreenChrome();
 
             _layoutMode = UGUIWindowLayoutMode.Maximized;
             _isMinimized = false;
@@ -321,6 +415,68 @@ namespace UGUIWindow
             Focus();
         }
 
+        /// <summary>
+        /// macOS의 '전체화면'에 해당한다. 예약된 여백을 무시하고 화면 전체를 덮으며,
+        /// 헤더는 화면 위로 밀려나 포인터를 위쪽 가장자리에 대면 다시 내려온다.
+        /// </summary>
+        public void EnterFullScreen()
+        {
+            if (!isResizable)
+            {
+                UGUIWindowLog.LogError($"This Window {GetType()} cannot be resized!");
+                return;
+            }
+
+            if (_layoutMode == UGUIWindowLayoutMode.FullScreen)
+            {
+                return;
+            }
+
+            _layoutModeBeforeFullScreen = _layoutMode;
+            _layoutMode = UGUIWindowLayoutMode.FullScreen;
+            _isMinimized = false;
+            SynchronizeWindowMode();
+
+            _headerAnchoredYBeforeFullScreen = HeaderRectTransform != null
+                ? HeaderRectTransform.anchoredPosition.y
+                : 0f;
+            _headerRevealProgress = 0f;
+            ApplyHeaderReveal();
+
+            ApplyFullScreenLayout();
+
+            HasBorder = false;
+            isMovable = false;
+
+            if (windowManager != null)
+            {
+                windowManager.SetFullScreenWindow(this);
+            }
+
+            Focus();
+        }
+
+        /// <summary>
+        /// 전체화면을 해제하고 진입 직전의 레이아웃(확대 또는 창 모드)으로 되돌린다.
+        /// 전체화면이 아니면 아무것도 하지 않는다.
+        /// </summary>
+        public void ExitFullScreen()
+        {
+            if (_layoutMode != UGUIWindowLayoutMode.FullScreen)
+            {
+                return;
+            }
+
+            if (_layoutModeBeforeFullScreen == UGUIWindowLayoutMode.Maximized)
+            {
+                Maximize();
+            }
+            else
+            {
+                RestoreWindow();
+            }
+        }
+
         public void RestoreWindow()
         {
             if (!isResizable)
@@ -328,6 +484,8 @@ namespace UGUIWindow
                 UGUIWindowLog.LogError($"This Window {GetType()} cannot be resized!");
                 return;
             }
+
+            LeaveFullScreenChrome();
 
             _layoutMode = UGUIWindowLayoutMode.Windowed;
             _isMinimized = false;
@@ -341,6 +499,10 @@ namespace UGUIWindow
 
         public void Minimize()
         {
+            // 전체화면인 채로 최소화하면 도크가 숨은 채 되살릴 수단이 사라지므로,
+            // 이전 크기로 되돌린 뒤 최소화한다.
+            ExitFullScreen();
+
             _isMinimized = true;
             SynchronizeWindowMode();
             OnMinimizeWindow?.Invoke(this);
@@ -404,10 +566,21 @@ namespace UGUIWindow
 
         private void InitializeRuntimeWindowMode()
         {
-            _layoutMode = _windowMode == UGUIWindowMode.Maximized
-                ? UGUIWindowLayoutMode.Maximized
-                : UGUIWindowLayoutMode.Windowed;
+            switch (_windowMode)
+            {
+                case UGUIWindowMode.Maximized:
+                    _layoutMode = UGUIWindowLayoutMode.Maximized;
+                    break;
+                case UGUIWindowMode.FullScreen:
+                    _layoutMode = UGUIWindowLayoutMode.FullScreen;
+                    break;
+                default:
+                    _layoutMode = UGUIWindowLayoutMode.Windowed;
+                    break;
+            }
+
             _isMinimized = _windowMode == UGUIWindowMode.Minimized;
+            _layoutModeBeforeFullScreen = UGUIWindowLayoutMode.Windowed;
         }
 
         private void SynchronizeWindowMode()
@@ -431,6 +604,113 @@ namespace UGUIWindow
             Vector2 offsetMax = windowManager != null ? windowManager.MaximizedWindowOffsetMax : Vector2.zero;
 
             view.ApplyMaximizedState(headerHeight, offsetMin, offsetMax);
+        }
+
+        private void ApplyFullScreenLayout()
+        {
+            // 확대와 달리 도크가 예약한 여백도, 헤더 자리도 비워두지 않는다.
+            view.ApplyFullScreenState();
+        }
+
+        /// <summary>
+        /// 전체화면에서 벗어날 때 헤더 위치와 매니저 점유를 되돌린다.
+        /// 전체화면이 아니면 아무것도 하지 않는다.
+        /// </summary>
+        private void LeaveFullScreenChrome()
+        {
+            if (_layoutMode != UGUIWindowLayoutMode.FullScreen)
+            {
+                return;
+            }
+
+            RectTransform header = HeaderRectTransform;
+            if (header != null)
+            {
+                header.anchoredPosition = new Vector2(
+                    header.anchoredPosition.x,
+                    _headerAnchoredYBeforeFullScreen);
+            }
+
+            _headerRevealProgress = 0f;
+
+            if (windowManager != null)
+            {
+                windowManager.ClearFullScreenWindow(this);
+            }
+        }
+
+        /// <summary>
+        /// _headerRevealProgress를 헤더의 세로 위치로 옮긴다.
+        /// 헤더 pivot이 위쪽이므로 y = 헤더 높이면 화면 위로 완전히 벗어나고, y = 0이면 화면 위 가장자리에 붙는다.
+        /// </summary>
+        private void ApplyHeaderReveal()
+        {
+            RectTransform header = HeaderRectTransform;
+            if (header == null)
+            {
+                return;
+            }
+
+            float hiddenY = header.rect.height;
+            float revealedY = 0f;
+
+            header.anchoredPosition = new Vector2(
+                header.anchoredPosition.x,
+                Mathf.Lerp(hiddenY, revealedY, _headerRevealProgress));
+        }
+
+        private void UpdateHeaderReveal()
+        {
+            RectTransform header = HeaderRectTransform;
+            if (header == null || !_hasHeader)
+            {
+                return;
+            }
+
+            float target = IsPointerInHeaderRevealZone(header) ? 1f : 0f;
+            if (Mathf.Approximately(_headerRevealProgress, target))
+            {
+                return;
+            }
+
+            float t = 1f - Mathf.Exp(-fullScreenHeaderRevealSpeed * Time.unscaledDeltaTime);
+            _headerRevealProgress = Mathf.Lerp(_headerRevealProgress, target, t);
+
+            if (Mathf.Abs(_headerRevealProgress - target) < 0.001f)
+            {
+                _headerRevealProgress = target;
+            }
+
+            ApplyHeaderReveal();
+        }
+
+        private bool IsPointerInHeaderRevealZone(RectTransform header)
+        {
+            if (!UGUIWindowManager.TryGetPointerScreenPosition(out Vector2 screenPosition))
+            {
+                return false;
+            }
+
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    RectTransform,
+                    screenPosition,
+                    null,
+                    out Vector2 localPointer))
+            {
+                return false;
+            }
+
+            // 전체화면이므로 창 rect의 위쪽 가장자리가 곧 화면의 위쪽 가장자리다.
+            // 헤더가 내려와 있는 동안에는 감지 범위를 헤더 높이까지 넓혀,
+            // 포인터를 헤더 위에 올려둔 채로 버튼을 누를 수 있게 한다.
+            Rect windowRect = RectTransform.rect;
+            float zoneHeight = Mathf.Max(
+                PixelsToCanvasUnits(fullScreenHeaderRevealZonePixels),
+                _headerRevealProgress * header.rect.height);
+
+            return localPointer.y >= windowRect.yMax - zoneHeight
+                && localPointer.x >= windowRect.xMin
+                && localPointer.x <= windowRect.xMax;
         }
         #endregion
 

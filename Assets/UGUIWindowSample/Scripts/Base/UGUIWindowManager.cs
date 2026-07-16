@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace UGUIWindow
@@ -133,6 +134,9 @@ namespace UGUIWindow
 
         private UGUIWindowSwitcher windowSwitcher;
 
+        // 전체화면은 한 번에 하나의 Window만 점유한다.
+        private UGUIWindow fullScreenWindow;
+
         public static float CurrentDPI
         {
             get
@@ -184,6 +188,51 @@ namespace UGUIWindow
                 eventData.delta.x * ScreenMultiplierWidth,
                 eventData.delta.y * ScreenMultiplierHeight
             );
+        }
+
+        /// <summary>
+        /// 현재 전체화면을 점유 중인 Window. 없으면 null.
+        /// </summary>
+        public UGUIWindow FullScreenWindow
+        {
+            get { return fullScreenWindow; }
+        }
+
+        public bool HasFullScreenWindow
+        {
+            get { return fullScreenWindow != null; }
+        }
+
+        /// <summary>
+        /// 실제 화면 픽셀을 해당 Canvas의 좌표 단위로 바꾼다.
+        /// 가장자리 감지 범위처럼 '손의 정확도'에 맞춰야 하는 값은 화면 배율이나 창 크기를 따라
+        /// 늘었다 줄었다 하면 안 되므로, 캔버스 단위로 직접 쓰지 말고 이 변환을 거칠 것.
+        /// </summary>
+        public static float PixelsToCanvasUnits(float pixels, Canvas canvas)
+        {
+            if (canvas == null)
+            {
+                return pixels;
+            }
+
+            float scaleFactor = canvas.rootCanvas.scaleFactor;
+            return scaleFactor > 0f ? pixels / scaleFactor : pixels;
+        }
+
+        /// <summary>
+        /// 포인터의 화면 좌표를 얻는다. 마우스가 없는 환경이면 false.
+        /// </summary>
+        public static bool TryGetPointerScreenPosition(out Vector2 screenPosition)
+        {
+            var mouse = Mouse.current;
+            if (mouse == null)
+            {
+                screenPosition = Vector2.zero;
+                return false;
+            }
+
+            screenPosition = mouse.position.ReadValue();
+            return true;
         }
 
         public Vector2 MaximizedWindowOffsetMin
@@ -514,6 +563,44 @@ namespace UGUIWindow
         }
         #endregion
 
+        #region Window - FullScreen
+        /// <summary>
+        /// Window가 전체화면에 진입했음을 등록한다. 이미 다른 Window가 전체화면이면 그 Window를 먼저 내보낸다.
+        /// UGUIWindow.EnterFullScreen이 호출하므로 직접 부를 일은 없다.
+        /// </summary>
+        public void SetFullScreenWindow(UGUIWindow window)
+        {
+            if (window == null || fullScreenWindow == window)
+            {
+                return;
+            }
+
+            var previousWindow = fullScreenWindow;
+
+            // previousWindow를 내보내기 전에 먼저 갱신해야, 그쪽의 ClearFullScreenWindow가
+            // 소유자 검사에 걸려 방금 등록한 window를 지우지 않는다.
+            fullScreenWindow = window;
+
+            if (previousWindow != null)
+            {
+                previousWindow.ExitFullScreen();
+            }
+        }
+
+        /// <summary>
+        /// Window가 전체화면에서 벗어났음을 등록 해제한다. 현재 점유자가 아니면 무시한다.
+        /// </summary>
+        public void ClearFullScreenWindow(UGUIWindow window)
+        {
+            if (fullScreenWindow != window)
+            {
+                return;
+            }
+
+            fullScreenWindow = null;
+        }
+        #endregion
+
         #region Window - Create
         /// <summary>
         /// 윈도우을 생성하는 private 메소드
@@ -784,6 +871,13 @@ namespace UGUIWindow
         private void OnCancel()
         {
             EnsureRuntimeState();
+
+            // 전체화면 중이라면 창을 닫지 않고 전체화면부터 해제한다.
+            if (fullScreenWindow != null)
+            {
+                fullScreenWindow.ExitFullScreen();
+                return;
+            }
 
             // 만약 열려있는 윈도우가 있다면 최말단 윈도우를 닫는다.
             if (currentlyOpenedWindows.Count > 0)

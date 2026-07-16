@@ -53,13 +53,27 @@ namespace UGUIWindow
         [SerializeField] private float iconSpacing = 6f;
         [SerializeField] private int sortingOrder = 10;
 
+        [Header("FullScreen Visibility")]
+        [Tooltip("전체화면인 Window가 있을 때 작업 표시줄을 숨길지 여부")]
+        [SerializeField] private bool hideOnFullScreen = true;
+
+        [Tooltip("전체화면일 때 화면 아래쪽 이 범위 안으로 포인터가 들어오면 작업 표시줄이 다시 나온다. " +
+                 "Canvas 좌표가 아니라 실제 화면 픽셀이라, 화면 배율이나 창 크기가 바뀌어도 잡히는 폭은 같다.")]
+        [SerializeField] private float fullScreenRevealZonePixels = 32f;
+
+        [Tooltip("작업 표시줄이 숨고 나타나는 페이드 속도. 클수록 빠름.")]
+        [SerializeField] private float visibilityFadeSpeed = 14f;
+
         private readonly Dictionary<UGUIWindow, UGUITaskIcon> icons = new();
 
         private UGUIWindowManager subscribedManager;
         private UGUIWindowManager maximizedWindowAreaManager;
         private RectTransform rectTransform;
+        private CanvasGroup canvasGroup;
+        private Canvas canvas;
         private bool isSubscribed;
         private bool registeredMaximizedWindowArea;
+        private bool taskBarShouldShow = true;
 
         private void Awake()
         {
@@ -80,6 +94,13 @@ namespace UGUIWindow
             ConfigureTaskBarRect();
             SubscribeToManager();
             RebuildFromManager();
+            UpdateTaskBarVisibility(true); // 활성화 시점 상태로 즉시 스냅(첫 프레임 플래시 방지)
+        }
+
+        private void Update()
+        {
+            // 전체화면 여부와 포인터 위치는 매 프레임 바뀔 수 있으므로 여기서 다시 판단한다.
+            UpdateTaskBarVisibility(false);
         }
 
         private void OnDisable()
@@ -277,14 +298,110 @@ namespace UGUIWindow
 
             ConfigureTaskBarRect();
 
-            var canvas = GetComponent<Canvas>();
+            canvas = GetComponent<Canvas>();
             canvas.overrideSorting = true;
             canvas.sortingOrder = sortingOrder;
+
+            canvasGroup = GetComponent<CanvasGroup>();
+            if (canvasGroup == null)
+            {
+                canvasGroup = gameObject.AddComponent<CanvasGroup>();
+            }
 
             if (iconContainer == null)
             {
                 iconContainer = CreateDefaultContainer();
             }
+        }
+
+        /// <summary>
+        /// 전체화면인 Window가 있으면 작업 표시줄을 숨기고, 화면 아래쪽에 포인터를 대면 다시 꺼낸다.
+        /// instant=true면 페이드 없이 즉시 적용한다.
+        /// </summary>
+        private void UpdateTaskBarVisibility(bool instant)
+        {
+            taskBarShouldShow = !IsHiddenByFullScreen() || IsPointerInRevealZone();
+
+            if (canvasGroup == null)
+            {
+                canvasGroup = GetComponent<CanvasGroup>();
+                if (canvasGroup == null)
+                {
+                    return;
+                }
+            }
+
+            float target = taskBarShouldShow ? 1f : 0f;
+
+            if (instant)
+            {
+                canvasGroup.alpha = target;
+            }
+            else if (!Mathf.Approximately(canvasGroup.alpha, target))
+            {
+                float t = 1f - Mathf.Exp(-visibilityFadeSpeed * Time.unscaledDeltaTime);
+                canvasGroup.alpha = Mathf.Lerp(canvasGroup.alpha, target, t);
+
+                if (Mathf.Abs(canvasGroup.alpha - target) < 0.004f)
+                {
+                    canvasGroup.alpha = target;
+                }
+            }
+            else
+            {
+                return;
+            }
+
+            bool visible = canvasGroup.alpha > 0.01f;
+            canvasGroup.blocksRaycasts = visible;
+            canvasGroup.interactable = visible;
+        }
+
+        private bool IsHiddenByFullScreen()
+        {
+            if (!hideOnFullScreen)
+            {
+                return false;
+            }
+
+            var manager = subscribedManager != null ? subscribedManager : UGUIWindowManager.Instance;
+            return manager != null && manager.HasFullScreenWindow;
+        }
+
+        // 숨은 작업 표시줄은 raycast를 받지 못하므로, 포인터 이벤트가 아니라 좌표로 판정한다.
+        private bool IsPointerInRevealZone()
+        {
+            var parentRect = rectTransform != null ? rectTransform.parent as RectTransform : null;
+            if (parentRect == null)
+            {
+                return false;
+            }
+
+            if (!UGUIWindowManager.TryGetPointerScreenPosition(out Vector2 screenPosition))
+            {
+                return false;
+            }
+
+            // Canvas가 ScreenSpaceOverlay이므로 카메라는 null.
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    parentRect,
+                    screenPosition,
+                    null,
+                    out Vector2 localPointer))
+            {
+                return false;
+            }
+
+            // 이미 나와 있으면 감지 범위를 작업 표시줄 높이까지 넓혀,
+            // 포인터를 그 위에 올려둔 채로 아이콘을 누를 수 있게 한다.
+            Rect area = parentRect.rect;
+            float zoneHeight = taskBarShouldShow
+                ? taskBarHeight
+                : UGUIWindowManager.PixelsToCanvasUnits(fullScreenRevealZonePixels, canvas);
+
+            return localPointer.y <= area.yMin + zoneHeight
+                && localPointer.x >= area.xMin
+                && localPointer.x <= area.xMax;
         }
 
         private RectTransform CreateDefaultContainer()

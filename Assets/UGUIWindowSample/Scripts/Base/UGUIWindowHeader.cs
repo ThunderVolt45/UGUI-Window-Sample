@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace UGUIWindow
@@ -33,21 +34,56 @@ namespace UGUIWindow
             buttonMinimize.onClick.AddListener(parentWindow.Minimize);
         }
 
+        /// <summary>
+        /// macOS 초록 버튼과 같은 규칙: 그냥 누르면 전체화면, Option(Alt)을 누른 채로 누르면 확대.
+        /// </summary>
         private void MaximizeOrRestoreWindow()
+        {
+            if (IsZoomModifierHeld())
+            {
+                ToggleZoom();
+                return;
+            }
+
+            ToggleFullScreen();
+        }
+
+        private static bool IsZoomModifierHeld()
+        {
+            var keyboard = Keyboard.current;
+            if (keyboard == null)
+            {
+                return false;
+            }
+
+            return keyboard.leftAltKey.isPressed || keyboard.rightAltKey.isPressed;
+        }
+
+        /// <summary>확대(zoom) ↔ 창 모드 토글. 전체화면 상태에서 부르면 창 모드로 빠져나온다.</summary>
+        private void ToggleZoom()
         {
             switch (parentWindow.WindowMode)
             {
-                case UGUIWindowMode.Windowed:
-                case UGUIWindowMode.Minimized:
-                    parentWindow.Maximize();
-                    break;
                 case UGUIWindowMode.Maximized:
+                case UGUIWindowMode.FullScreen:
                     parentWindow.RestoreWindow();
                     break;
                 default:
-                    UGUIWindowLog.LogError($"Window Mode {parentWindow.WindowMode} is undefined!");
+                    parentWindow.Maximize();
                     break;
             }
+        }
+
+        /// <summary>전체화면 ↔ 직전 레이아웃 토글.</summary>
+        private void ToggleFullScreen()
+        {
+            if (parentWindow.WindowMode == UGUIWindowMode.FullScreen)
+            {
+                parentWindow.ExitFullScreen();
+                return;
+            }
+
+            parentWindow.EnterFullScreen();
         }
 
         #region Settings
@@ -70,17 +106,10 @@ namespace UGUIWindow
         #region Pointer Event
         public void OnPointerClick(PointerEventData eventData)
         {
+            // macOS와 동일하게 타이틀바 더블클릭은 확대(zoom)이지 전체화면이 아니다.
             if (eventData.clickCount == 2)
             {
-                switch (parentWindow.WindowMode)
-                {
-                    case UGUIWindowMode.Maximized:
-                        parentWindow.WindowMode = UGUIWindowMode.Windowed;
-                        break;
-                    default:
-                        parentWindow.WindowMode = UGUIWindowMode.Maximized;
-                        break;
-                }
+                ToggleZoom();
             }
         }
 
@@ -103,7 +132,9 @@ namespace UGUIWindow
             // 드래그 중이 아니라면 처리하지 않는다
             if (!isDragging) return;
 
-            if (parentWindow.WindowMode == UGUIWindowMode.Maximized)
+            // 확대·전체화면 상태에서 헤더를 끌면 포인터 위치에서 창 모드로 떨어져 나온다.
+            if (parentWindow.WindowMode == UGUIWindowMode.Maximized ||
+                parentWindow.WindowMode == UGUIWindowMode.FullScreen)
             {
                 RestoreWindowAtPointer(eventData);
                 return;
@@ -122,7 +153,11 @@ namespace UGUIWindow
         {
             isDragging = false;
 
-            if (parentWindow.WindowMode == UGUIWindowMode.Maximized) return;
+            if (parentWindow.WindowMode == UGUIWindowMode.Maximized ||
+                parentWindow.WindowMode == UGUIWindowMode.FullScreen)
+            {
+                return;
+            }
 
             parentWindow.MemorizeLastWindowState();
         }

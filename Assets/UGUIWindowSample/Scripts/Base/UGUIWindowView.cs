@@ -146,6 +146,17 @@ namespace UGUIWindow
             RectTransform.offsetMax = offsetMax + new Vector2(0f, -headerHeight);
         }
 
+        /// <summary>
+        /// 예약된 여백도 헤더 자리도 남기지 않고 부모 Rect 전체를 덮는다.
+        /// </summary>
+        public void ApplyFullScreenState()
+        {
+            RectTransform.anchorMin = Vector2.zero;
+            RectTransform.anchorMax = Vector2.one;
+            RectTransform.offsetMin = Vector2.zero;
+            RectTransform.offsetMax = Vector2.zero;
+        }
+
         public void ApplyRestoredState(UGUIWindowState state)
         {
             if (state == null) return;
