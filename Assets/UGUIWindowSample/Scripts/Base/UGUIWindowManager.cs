@@ -648,7 +648,8 @@ namespace UGUIWindow
             postInstantiationAction?.Invoke(createdWindow);
 
             // 윈도우 기본 설정
-            string windowTitle = string.IsNullOrEmpty(windowName) ? key : windowName;
+            // 이름을 지정하지 않았다면 프리팹의 제목(DefaultTitle, 미지정 시 클래스명)을 쓴다.
+            string windowTitle = string.IsNullOrEmpty(windowName) ? createdWindow.DefaultTitle : windowName;
             createdObject.name = windowTitle; // 일관성을 위해 GameObject의 이름도 설정합니다.
             createdWindow.SetWindowTitle(windowTitle);
 

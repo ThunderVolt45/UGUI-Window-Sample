@@ -63,6 +63,10 @@ namespace UGUIWindow
         [Tooltip("작업 표시줄 등에 표시할 윈도우 아이콘")]
         [SerializeField] private Sprite windowIcon;
 
+        [Tooltip("창 제목. 비워두면 클래스명을 사용합니다. windowIcon과 마찬가지로, 창이 열리기 전에도 " +
+                 "(작업 표시줄에 핀 고정된 앱의 이름 등) 프리팹에서 읽어야 하므로 직렬화합니다.")]
+        [SerializeField] private string defaultTitle;
+
         [Header("FullScreen Settings")]
         [Space(3f)]
         [Tooltip("전체화면일 때 화면 위쪽 이 범위 안으로 포인터가 들어오면 헤더가 내려옵니다. " +
@@ -171,6 +175,15 @@ namespace UGUIWindow
         public RectTransform RectTransform { get { return view.RectTransform; } }
 
         public string WindowTitle { get; private set; }
+
+        /// <summary>
+        /// 프리팹에 저장된 창 제목(미지정 시 클래스명). 인스턴스가 없어도 읽을 수 있으므로
+        /// 작업 표시줄이 아직 실행되지 않은 앱의 이름을 표시할 때 쓴다.
+        /// </summary>
+        public string DefaultTitle
+        {
+            get { return string.IsNullOrWhiteSpace(defaultTitle) ? GetType().Name : defaultTitle; }
+        }
 
         public Sprite WindowIcon
         {
